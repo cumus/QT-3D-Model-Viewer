@@ -30,6 +30,53 @@ SOURCES += \
         myopenglwidget.cpp
 
 HEADERS += \
+        Assimp/include/assimp/Compiler/poppack1.h \
+        Assimp/include/assimp/Compiler/pstdint.h \
+        Assimp/include/assimp/Compiler/pushpack1.h \
+        Assimp/include/assimp/DefaultIOStream.h \
+        Assimp/include/assimp/DefaultIOSystem.h \
+        Assimp/include/assimp/DefaultLogger.hpp \
+        Assimp/include/assimp/Defines.h \
+        Assimp/include/assimp/Exporter.hpp \
+        Assimp/include/assimp/IOStream.hpp \
+        Assimp/include/assimp/IOSystem.hpp \
+        Assimp/include/assimp/Importer.hpp \
+        Assimp/include/assimp/LogStream.hpp \
+        Assimp/include/assimp/Logger.hpp \
+        Assimp/include/assimp/NullLogger.hpp \
+        Assimp/include/assimp/ProgressHandler.hpp \
+        Assimp/include/assimp/SceneCombiner.h \
+        Assimp/include/assimp/ai_assert.h \
+        Assimp/include/assimp/anim.h \
+        Assimp/include/assimp/camera.h \
+        Assimp/include/assimp/cexport.h \
+        Assimp/include/assimp/cfileio.h \
+        Assimp/include/assimp/cimport.h \
+        Assimp/include/assimp/color4.h \
+        Assimp/include/assimp/color4.inl \
+        Assimp/include/assimp/config.h \
+        Assimp/include/assimp/defs.h \
+        Assimp/include/assimp/importerdesc.h \
+        Assimp/include/assimp/light.h \
+        Assimp/include/assimp/material.h \
+        Assimp/include/assimp/material.inl \
+        Assimp/include/assimp/matrix3x3.h \
+        Assimp/include/assimp/matrix3x3.inl \
+        Assimp/include/assimp/matrix4x4.h \
+        Assimp/include/assimp/matrix4x4.inl \
+        Assimp/include/assimp/mesh.h \
+        Assimp/include/assimp/metadata.h \
+        Assimp/include/assimp/postprocess.h \
+        Assimp/include/assimp/quaternion.h \
+        Assimp/include/assimp/quaternion.inl \
+        Assimp/include/assimp/scene.h \
+        Assimp/include/assimp/texture.h \
+        Assimp/include/assimp/types.h \
+        Assimp/include/assimp/vector2.h \
+        Assimp/include/assimp/vector2.inl \
+        Assimp/include/assimp/vector3.h \
+        Assimp/include/assimp/vector3.inl \
+        Assimp/include/assimp/version.h \
         mainwindow.h \
         myopenglwidget.h
 
@@ -42,4 +89,17 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
+    icons.qrc \
     icons.qrc
+
+DISTFILES += \
+    Assimp/lib/assimp.dll \
+    Assimp/lib/assimp.lib \
+    Assimp/lib/assimpd.dll \
+    Assimp/lib/assimpd.lib \
+    Resources/icons/Badge-multiply.png \
+    Resources/icons/Disquette.png \
+    Resources/icons/Doc.png \
+    Resources/icons/Document-new.png \
+    Resources/icons/Folder.png \
+    Resources/icons/Info.png
