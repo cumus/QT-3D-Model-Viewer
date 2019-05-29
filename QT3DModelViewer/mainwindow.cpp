@@ -2,6 +2,7 @@
 
 #include "ui_mainwindow.h"
 #include "myopenglwidget.h"
+#include <QtWidgets>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -11,6 +12,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
 
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, myOpenGLWidget, &MyOpenGLWidget::Tick);
+    timer->start(5);
 
     /*/ Hierarchy
     QWidget *hierarchyWidget = new QWidget();
