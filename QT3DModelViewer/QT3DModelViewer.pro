@@ -25,9 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        component.cpp \
+        gameobject.cpp \
         main.cpp \
         mainwindow.cpp \
-        myopenglwidget.cpp
+        mesh.cpp \
+        myopenglwidget.cpp \
+        resources.cpp \
+        scene.cpp \
+        transform.cpp
 
 HEADERS += \
         Assimp/include/assimp/Compiler/poppack1.h \
@@ -77,8 +83,14 @@ HEADERS += \
         Assimp/include/assimp/vector3.h \
         Assimp/include/assimp/vector3.inl \
         Assimp/include/assimp/version.h \
+        component.h \
+        gameobject.h \
         mainwindow.h \
-        myopenglwidget.h
+        mesh.h \
+        myopenglwidget.h \
+        resources.h \
+        scene.h \
+        transform.h
 
 FORMS += \
         mainwindow.ui

@@ -7,8 +7,9 @@
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
 
-QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
-QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
+class Scene;
+class Resources;
+class Mesh;
 
 class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -19,38 +20,31 @@ public:
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
+
     void Tick();
+    void DrawMesh(Mesh* mesh = nullptr);
 
 protected:
     void initializeGL() override;
     void paintGL() override;
-    /*void resizeGL(int width, int height) override;
-    void mousePressEvent(QMouseEvent *event) override;
+    void resizeGL(int width, int height) override;
+    /*void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;*/
+
+public:
+    // Scene
+    Scene* scene = nullptr;
+    Resources* resources = nullptr;
 
 private:
 
     bool m_core;
 
-    /*QOpenGLVertexArrayObject m_vao;
-    QOpenGLBuffer m_logoVbo;
-    QOpenGLShaderProgram *m_program;
-
-    int m_projMatrixLoc;
-    int m_mvMatrixLoc;
-    int m_normalMatrixLoc;
-    int m_lightPosLoc;
-
+    // camera
     QMatrix4x4 m_proj;
     QMatrix4x4 m_camera;
-    QMatrix4x4 m_world;*/
 
-    int xRot;
-    int yRot;
-    int zRot;
-    QOpenGLTexture *textures[6];
-    QOpenGLShaderProgram *program;
-    QOpenGLBuffer vbo;
+    int program_index = -1;
 };
 
 #endif // MYOPENGLWIDGET_H

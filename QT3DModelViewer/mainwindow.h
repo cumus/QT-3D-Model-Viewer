@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <iostream>
 
+class Resources;
+class Scene;
+
 namespace Ui {
 class MainWindow;
 // class Hierarchy;
@@ -35,6 +38,9 @@ private:
     Scene* scene = nullptr;*/
 
     MyOpenGLWidget* myOpenGLWidget = nullptr;
+
+    Resources* resources= nullptr;
+    Scene* scene= nullptr;
 
 public slots:
     /*void openScene();

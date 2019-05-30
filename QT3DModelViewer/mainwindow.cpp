@@ -2,6 +2,10 @@
 
 #include "ui_mainwindow.h"
 #include "myopenglwidget.h"
+
+#include "resources.h"
+#include "scene.h"
+
 #include <QtWidgets>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -10,9 +14,16 @@ MainWindow::MainWindow(QWidget *parent) :
     // uiHierarchy(new Ui::Hierarchy)
 {
     ui->setupUi(this);
+
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
+    myOpenGLWidget->scene = scene= new Scene();
+    myOpenGLWidget->resources = scene->resources = resources = new Resources();
 
+    // Create GO with sample mesh
+    //vbo.create();
+    //texture = new QOpenGLTexture(QImage(QString(":/icons/Resources/icons/Folder.png")).mirrored());
 
+    // Tick Widget
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, myOpenGLWidget, &MyOpenGLWidget::Tick);
     timer->start(5);
@@ -62,5 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete myOpenGLWidget;
+    delete resources;
+    delete scene;
     delete ui;
 }
