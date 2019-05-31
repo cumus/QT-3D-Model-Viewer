@@ -19,6 +19,14 @@ Scene::~Scene()
     delete root;
 }
 
+Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
+{
+    GameObject* go = AddGameObject("Demo Cube");
+    Mesh* mesh = new Mesh(go);
+    mesh->LoadFromFile("QtLogo", renderer);
+    return mesh;
+}
+
 void Scene::Clear()
 {
     delete root;
@@ -28,45 +36,6 @@ void Scene::Clear()
 void Scene::Draw(MyOpenGLWidget* renderer)
 {
     root->Draw(renderer);
-}
-
-void Scene::InitDemo()
-{
-    GameObject* go = AddGameObject("Demo Cube");
-    Mesh* mesh = new Mesh();
-    go->components.push_back(mesh);
-
-
-    static const int coords[6][4][3] = {
-            { { +1, -1, -1 }, { -1, -1, -1 }, { -1, +1, -1 }, { +1, +1, -1 } },
-            { { +1, +1, -1 }, { -1, +1, -1 }, { -1, +1, +1 }, { +1, +1, +1 } },
-            { { +1, -1, +1 }, { +1, -1, -1 }, { +1, +1, -1 }, { +1, +1, +1 } },
-            { { -1, -1, -1 }, { -1, -1, +1 }, { -1, +1, +1 }, { -1, +1, -1 } },
-            { { +1, -1, +1 }, { -1, -1, +1 }, { -1, -1, -1 }, { +1, -1, -1 } },
-            { { -1, -1, +1 }, { +1, -1, +1 }, { +1, +1, +1 }, { -1, +1, +1 } }
-    };
-
-    float scale = 0.2f;
-
-    QVector<GLfloat> vertData;
-    for (int i = 0; i < 6; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            // vertex position
-            vertData.append(scale * coords[i][j][0]);
-            vertData.append(scale * coords[i][j][1]);
-            vertData.append(scale * coords[i][j][2]);
-
-            // texture coordinate
-            vertData.append(j == 0 || j == 3);
-            vertData.append(j == 0 || j == 1);
-        }
-    }
-
-    mesh->vbo_index = resources->AddVBO(&vertData);
-    mesh->texture_index = resources->AddTex(":/icons/Resources/icons/Folder.png");
-    go->transform->local_pos.setZ(-10);
 }
 
 GameObject *Scene::AddGameObject(QString name, GameObject *parent)

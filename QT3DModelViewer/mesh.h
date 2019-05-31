@@ -2,9 +2,16 @@
 #define MESH_H
 
 #include "component.h"
+#include <qopengl.h>
+#include <QVector>
+#include <QVector3D>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+
+QT_FORWARD_DECLARE_CLASS(QOpenGLBuffer)
 
 class MyOpenGLWidget;
-class Resources;
+//class Resources;
 
 class Mesh : public Component
 {
@@ -14,17 +21,29 @@ public:
 
     void Draw(MyOpenGLWidget* renderer = nullptr);
 
-    //bool Setup(Resources* res = nullptr);
+    void LoadFromFile(QString filename, MyOpenGLWidget* renderer = nullptr);
 
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;
     void CleanUp() override;
 
-public:
+    const GLfloat *constData() const { return m_data.constData(); }
+    int count() const { return m_count; }
+    int vertexCount() const { return m_count / 6; }
 
-    int vao_index = -1;
-    int vbo_index = -1;
-    int texture_index = -1;
+private:
+    void quad(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3, GLfloat x4, GLfloat y4);
+    void extrude(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
+    void add(const QVector3D &v, const QVector3D &n);
+
+public:
+    QOpenGLVertexArrayObject vao;
+    QOpenGLBuffer vbo;
+
+private:
+    QVector<GLfloat> m_data;
+    int m_count;
+
 };
 
 #endif // MODEL_H

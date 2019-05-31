@@ -4,8 +4,9 @@
 #include <QString>
 
 class MyOpenGLWidget;
-class Resources;
+//class Resources;
 class GameObject;
+class Mesh;
 
 class Scene
 {
@@ -13,17 +14,17 @@ public:
     Scene();
     ~Scene();
 
-    void Clear();
-    void Draw(MyOpenGLWidget* renderer = nullptr);
+    Mesh* InitDemo(MyOpenGLWidget* renderer);
 
-    void InitDemo();
+    void Clear();
+    void Draw(MyOpenGLWidget* renderer);
 
     GameObject* AddGameObject(QString name, GameObject* parent = nullptr);
     void RemoveEntity(int id);
 
 public:
     GameObject* root = nullptr;
-    Resources* resources = nullptr;
+    //Resources* resources = nullptr;
 };
 
 #endif // SCENE_H

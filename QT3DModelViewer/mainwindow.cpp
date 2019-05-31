@@ -17,10 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
     myOpenGLWidget->scene = scene = new Scene();
-    myOpenGLWidget->resources = scene->resources = resources = new Resources();
-
-    // Create GO with sample mesh
-    scene->InitDemo();
+    myOpenGLWidget->resources = resources = new Resources();
 
     // Tick Widget
     QTimer *timer = new QTimer(this);
