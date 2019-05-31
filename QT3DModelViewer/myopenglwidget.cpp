@@ -43,11 +43,18 @@ QSize MyOpenGLWidget::sizeHint() const
     return QSize(563, 453);
 }
 
+
 void MyOpenGLWidget::Tick()
 {
-    /*if (xRot++ >= 360) xRot = 0;
-    if (yRot++ >= 360) yRot = 0;
-    if (zRot++ >= 360) zRot = 0;*/
+    /*if(scene != nullptr && !scene->root->childs.empty())
+    {
+        Transform* t = scene->root->childs.first()->transform;
+        t->local_rot.setX(t->local_rot.x() >= 360 ? 0 : t->local_rot.x() + 1);
+        t->local_rot.setY(t->local_rot.y() >= 360 ? 0 : t->local_rot.y() + 1);
+        t->local_rot.setZ(t->local_rot.z() >= 360 ? 0 : t->local_rot.z() + 1);
+    }*/
+
+    scene->Draw(this);
 
     update();
 }
@@ -105,8 +112,8 @@ void MyOpenGLWidget::paintGL()
     glClearColor(1, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /*if (scene != nullptr && scene->root != nullptr)
-        scene->root->Draw(this);*/
+    if (scene != nullptr)
+        scene->Draw(this);
 }
 
 void MyOpenGLWidget::DrawMesh(Mesh* mesh)

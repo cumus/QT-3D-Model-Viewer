@@ -2,6 +2,7 @@
 #define RESOURCES_H
 
 #include <QVector>
+#include <QOpenGLBuffer>
 //#include <QOpenGLVertexArrayObject>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLBuffer)
@@ -16,7 +17,7 @@ public:
 
     void Clear();
 
-    int AddVBO();
+    int AddVBO(QVector<GLfloat>* vertData);
     int AddTex(QString path = nullptr);
     int AddShader();
 

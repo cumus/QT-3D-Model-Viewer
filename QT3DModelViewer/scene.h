@@ -3,6 +3,7 @@
 
 #include <QString>
 
+class MyOpenGLWidget;
 class Resources;
 class GameObject;
 
@@ -13,7 +14,9 @@ public:
     ~Scene();
 
     void Clear();
-    void Draw();
+    void Draw(MyOpenGLWidget* renderer = nullptr);
+
+    void InitDemo();
 
     GameObject* AddGameObject(QString name, GameObject* parent = nullptr);
     void RemoveEntity(int id);

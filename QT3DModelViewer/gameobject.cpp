@@ -1,6 +1,7 @@
 #include "gameobject.h"
 #include "component.h"
 #include "transform.h"
+#include "mesh.h"
 
 GameObject::GameObject(QString name,
                        GameObject* parent,
@@ -9,7 +10,9 @@ GameObject::GameObject(QString name,
                        QVector3D rot,
                        QVector3D scale) :
     name(name),
-    parent(parent)
+    id(-1),
+    parent(parent),
+    mesh(nullptr)
 {
     childs.clear();
     components.clear();
@@ -23,26 +26,38 @@ GameObject::~GameObject()
     CleanUp();
 }
 
+/*template <class T>
+T* GameObject::AddComponent(int i)
+{
+    T* ret = nullptr;
+
+    switch(ComponentTYPE(i))
+    {
+    case MESH:
+    {
+        return new Mesh(this);
+    }
+    default: break;
+
+    }
+
+    return ret;
+}*/
+
 void GameObject::Draw(MyOpenGLWidget* renderer)
 {
     // Check if active
-    if (renderer == nullptr || transform == nullptr || !transform->isActive)
+    if (renderer == nullptr || transform == nullptr)
         return;
 
-    // Update Components
-    for (QVectorIterator<Component*> comp(components);
-         comp.hasNext();
-         comp.next())
-    {
-        if (comp.peekNext()->type == MESH && comp.peekNext()->isActive)
-            comp.peekNext()->Draw(renderer);
-    }
+    if (mesh != nullptr && mesh->isActive)
+        mesh->Draw(renderer);
 
-    // Update Childs
-    for (QVectorIterator<GameObject*> child(childs);
-         child.hasNext();
-         child.next())
-        child.peekNext()->Draw(renderer);
+
+    // Draw Childs
+    QVector<GameObject*>::iterator child = childs.begin();
+    for (; child != childs.end(); child++)
+        (*child)->Draw(renderer);
 }
 
 void GameObject::Save(QDataStream& stream){}

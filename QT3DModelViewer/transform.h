@@ -15,7 +15,6 @@ public:
               QVector3D scale = QVector3D(1,1,1));
     ~Transform() override;
 
-    void Draw(MyOpenGLWidget* renderer = nullptr) override;
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;
     void CleanUp() override;

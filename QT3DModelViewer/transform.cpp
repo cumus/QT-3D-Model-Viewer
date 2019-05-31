@@ -14,9 +14,6 @@ Transform::Transform(GameObject* go, bool isActive, QVector3D pos, QVector3D rot
 Transform::~Transform()
 {}
 
-void Transform::Draw(MyOpenGLWidget* renderer)
-{}
-
 void Transform::Save(QDataStream &stream) {}
 void Transform::Load(QDataStream &stream) {}
 void Transform::CleanUp() {}

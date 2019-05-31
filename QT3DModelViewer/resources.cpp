@@ -22,44 +22,24 @@ void Resources::Clear()
     programs.clear();
 }
 
-int Resources::AddVBO()
+int Resources::AddVBO(QVector<GLfloat>* vertData)
 {
     int ret = -1;
 
-    static const int coords[6][4][3] = {
-            { { +1, -1, -1 }, { -1, -1, -1 }, { -1, +1, -1 }, { +1, +1, -1 } },
-            { { +1, +1, -1 }, { -1, +1, -1 }, { -1, +1, +1 }, { +1, +1, +1 } },
-            { { +1, -1, +1 }, { +1, -1, -1 }, { +1, +1, -1 }, { +1, +1, +1 } },
-            { { -1, -1, -1 }, { -1, -1, +1 }, { -1, +1, +1 }, { -1, +1, -1 } },
-            { { +1, -1, +1 }, { -1, -1, +1 }, { -1, -1, -1 }, { +1, -1, -1 } },
-            { { -1, -1, +1 }, { +1, -1, +1 }, { +1, +1, +1 }, { -1, +1, +1 } }
-    };
-
-    float scale = 0.2f;
-
-    QVector<GLfloat> vertData;
-    for (int i = 0; i < 6; ++i)
+    if (vertData != nullptr)
     {
-        for (int j = 0; j < 4; ++j)
+        int count = vertData->count();
+        if (count > 0)
         {
-            // vertex position
-            vertData.append(scale * coords[i][j][0]);
-            vertData.append(scale * coords[i][j][1]);
-            vertData.append(scale * coords[i][j][2]);
+            QOpenGLBuffer* vbo = new QOpenGLBuffer();
+            vbo->create();
+            vbo->bind();
+            vbo->allocate(vertData->constData(), count * sizeof(GLfloat));
 
-            // texture coordinate
-            vertData.append(j == 0 || j == 3);
-            vertData.append(j == 0 || j == 1);
+            vbos.push_back(*vbo);
+            ret = vbos.count() - 1;
         }
     }
-
-    QOpenGLBuffer* vbo = new QOpenGLBuffer();
-    vbo->create();
-    vbo->bind();
-    vbo->allocate(vertData.constData(), vertData.count() * sizeof(GLfloat));
-
-    vbos.push_back(*vbo);
-    ret = vbos.count() - 1;
 
     return ret;
 }

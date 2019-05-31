@@ -16,12 +16,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
-    myOpenGLWidget->scene = scene= new Scene();
+    myOpenGLWidget->scene = scene = new Scene();
     myOpenGLWidget->resources = scene->resources = resources = new Resources();
 
     // Create GO with sample mesh
-    //vbo.create();
-    //texture = new QOpenGLTexture(QImage(QString(":/icons/Resources/icons/Folder.png")).mirrored());
+    scene->InitDemo();
 
     // Tick Widget
     QTimer *timer = new QTimer(this);

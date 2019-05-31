@@ -7,6 +7,7 @@
 
 class Component;
 class Transform;
+class Mesh;
 class MyOpenGLWidget;
 
 class GameObject
@@ -28,12 +29,14 @@ public:
 
 public:
     QString name = "untitled_go";
-    int id = 0;
+    int id = -1;
 
     GameObject* parent = nullptr;
     QVector<GameObject*> childs;
+
     QVector<Component*> components;
     Transform* transform = nullptr;
+    Mesh* mesh = nullptr;
 };
 
 #endif // GAMEOBJECT_H

@@ -4,9 +4,8 @@
 #include <QDataStream>
 
 class GameObject;
-class MyOpenGLWidget;
 
-enum ComponentTYPE : uint
+enum ComponentTYPE
 {
     EMPTY,
     TRANSFORM,
@@ -20,15 +19,11 @@ public:
     Component(ComponentTYPE type = EMPTY, GameObject* gameobject = nullptr, bool isActive = true);
     virtual ~Component();
 
-    virtual void Draw(MyOpenGLWidget* renderer = nullptr) = 0;
     virtual void Save(QDataStream& stream) = 0;
     virtual void Load(QDataStream& stream) = 0;
     virtual void CleanUp() = 0;
 
 public:
-
-    /*QString name = "Empty GameObject";
-    uint id = 0;*/
 
     ComponentTYPE type = EMPTY;
     GameObject* gameobject = nullptr;
