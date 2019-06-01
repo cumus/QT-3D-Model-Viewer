@@ -21,11 +21,6 @@ MainWindow::MainWindow(QWidget *parent) :
     myOpenGLWidget->scene = scene = new Scene();
     myOpenGLWidget->resources = resources = new Resources();
 
-    // Tick Widget
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, myOpenGLWidget, &MyOpenGLWidget::Tick);
-    timer->start(5);
-
     /*/ Hierarchy
     QWidget *hierarchyWidget = new QWidget();
     uiHierarchy->setupUi(hierarchyWidget);

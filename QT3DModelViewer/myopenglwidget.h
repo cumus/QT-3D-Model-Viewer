@@ -12,6 +12,7 @@ class Scene;
 class Resources;
 class Mesh;
 class Transform;
+class QTimer;
 
 struct Camera
 {
@@ -43,6 +44,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
 
 public:
 
@@ -51,11 +53,14 @@ public:
 
 private:
 
+    QTimer *timer = nullptr;
     int tick_count = 0;
+    float tick_period = 3.0f;
     int program_index = -1;
 
     Camera cam;
-    QPoint mouse_pos;
+    QPointF mouse_pos;
+    bool cam_dir[6];
 
     int m_mvMatrixLoc;
     int m_normalMatrixLoc;

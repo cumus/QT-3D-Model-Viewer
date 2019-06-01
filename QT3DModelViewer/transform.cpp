@@ -57,7 +57,7 @@ void Transform::TranslateLeft(float dist)
     if (!isUpdated)
         GetWorldMatrix();
 
-    local_pos += local_left * dist;
+    local_pos += world_left * dist;
     isUpdated = false;
 }
 
@@ -66,7 +66,7 @@ void Transform::TranslateUp(float dist)
     if (!isUpdated)
         GetWorldMatrix();
 
-    local_pos += local_up * dist;
+    local_pos += world_up * dist;
     isUpdated = false;
 }
 
@@ -75,32 +75,73 @@ void Transform::TranslateForward(float dist)
     if (!isUpdated)
         GetWorldMatrix();
 
-    local_pos += local_forward * dist;
+    local_pos += world_forward * dist;
     isUpdated = false;
 }
 
 void Transform::SetRotXYZ(QVector3D rot)
 {
     local_rot = rot;
+    local_qrot.fromEulerAngles(local_rot);
+
     isUpdated = false;
 }
 
 void Transform::RotateX(float x)
 {
     local_rot.setX(local_rot.x() + x);
+    local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
 }
 
 void Transform::RotateY(float y)
 {
     local_rot.setY(local_rot.y() + y);
+    local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
 }
 
 void Transform::RotateZ(float z)
 {
     local_rot.setZ(local_rot.z() + z);
+    local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
+}
+
+void Transform::RotateAngleAxis(float angle, QVector3D axis)
+{
+    QQuaternion rot;
+    float yaw, pitch, roll;
+
+    local_qrot = rot.fromAxisAndAngle(axis, angle) * local_qrot;
+    local_qrot.getEulerAngles(&pitch, &yaw, &roll);
+    local_rot = {-pitch, -yaw, roll};
+
+    isUpdated = false;
+}
+
+void Transform::RotateAxisLeft(float angle)
+{
+    if (!isUpdated)
+        GetWorldMatrix();
+
+    RotateAngleAxis(angle, world_left);
+}
+
+void Transform::RotateAxisUp(float angle)
+{
+    if (!isUpdated)
+        GetWorldMatrix();
+
+    RotateAngleAxis(angle, world_up);
+}
+
+void Transform::RotateAxisForward(float angle)
+{
+    if (!isUpdated)
+        GetWorldMatrix();
+
+    RotateAngleAxis(angle, world_forward);
 }
 
 void Transform::SetScale(QVector3D scale)
@@ -123,14 +164,15 @@ QMatrix4x4 Transform::GetWorldMatrix()
             world_m = gameobject->parent->transform->GetWorldMatrix();
 
         world_m.translate(local_pos);
+        //world_m.rotate(local_qrot);
         world_m.rotate(local_rot.x(), 1.0f, 0.0f, 0.0f);
         world_m.rotate(local_rot.y(), 0.0f, 1.0f, 0.0f);
         world_m.rotate(local_rot.z(), 0.0f, 0.0f, 1.0f);
         world_m.scale(local_scale);
 
-        local_left = world_m.column(0).toVector3D().normalized();
-        local_up = world_m.column(1).toVector3D().normalized();
-        local_forward = world_m.column(2).toVector3D().normalized();
+        world_left = world_m.column(0).toVector3D().normalized();
+        world_up = world_m.column(1).toVector3D().normalized() * -1;
+        world_forward = world_m.column(2).toVector3D().normalized();
 
         isUpdated = true;
     }
