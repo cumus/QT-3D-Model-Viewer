@@ -28,6 +28,10 @@ public:
     void RotateX(float x);
     void RotateY(float y);
     void RotateZ(float z);
+    void RotateAngleAxis(float angle, QVector3D axis);
+    void RotateAxisLeft(float angle);
+    void RotateAxisUp(float angle);
+    void RotateAxisForward(float angle);
     void SetScale(QVector3D scale);
 
     void Save(QDataStream& stream) override;
@@ -39,11 +43,12 @@ public:
 private:
     QVector3D local_pos;
     QVector3D local_rot;
+    QQuaternion local_qrot;
     QVector3D local_scale;
 
-    QVector3D local_left;
-    QVector3D local_up;
-    QVector3D local_forward;
+    QVector3D world_left;
+    QVector3D world_up;
+    QVector3D world_forward;
 
     bool isUpdated = false;
     QMatrix4x4 world_m;
