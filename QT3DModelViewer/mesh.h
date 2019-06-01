@@ -5,10 +5,22 @@
 #include <qopengl.h>
 #include <QVector>
 #include <QVector3D>
+#include <QVector2D>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLBuffer)
+
+struct Vertex {
+    QVector3D Position;
+    QVector3D Normal;
+    QVector2D TexCoords;
+};
+
+struct Texture {
+    unsigned int id;
+    QString type;
+};
 
 class MyOpenGLWidget;
 //class Resources;
@@ -19,7 +31,7 @@ public:
     Mesh(GameObject* go = nullptr, bool isActive = true);
     ~Mesh() override;
 
-    void Draw(MyOpenGLWidget* renderer = nullptr);
+    void Draw(MyOpenGLWidget* renderer) override;
 
     void LoadFromFile(QString filename, MyOpenGLWidget* renderer = nullptr);
 
@@ -37,6 +49,10 @@ private:
     void add(const QVector3D &v, const QVector3D &n);
 
 public:
+    QVector<Vertex> vertices;
+    QVector<unsigned int> indices;
+    QVector<Texture> textures;
+
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;
 

@@ -8,7 +8,7 @@ Mesh::Mesh(GameObject* go, bool isActive) :
     m_count(0)
 {
     if (go != nullptr)
-        go->components.push_back(go->mesh = this);
+        go->components.push_back(this);
 
     m_data.clear();
 }
@@ -25,7 +25,7 @@ void Mesh::Draw(MyOpenGLWidget* renderer)
 
 void Mesh::LoadFromFile(QString filename, MyOpenGLWidget* renderer)
 {
-    if(renderer = nullptr)
+    if(renderer == nullptr)
         return;
 
     if (filename != "QtLogo")

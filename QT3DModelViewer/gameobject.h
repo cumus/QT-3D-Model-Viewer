@@ -5,9 +5,14 @@
 #include <QVector>
 #include <QVector3D>
 
+#include "mesh.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 class Component;
 class Transform;
-class Mesh;
 class MyOpenGLWidget;
 
 class GameObject
@@ -27,6 +32,11 @@ public:
     void Load(QDataStream& stream);
     void CleanUp();
 
+    void importModel(QString path);
+    void processNode(aiNode *node, const aiScene *scene);
+    void processMesh(aiMesh *aimesh, const aiScene *scene);
+    QVector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName);
+
 public:
     QString name = "untitled_go";
     int id = -1;
@@ -36,7 +46,6 @@ public:
 
     QVector<Component*> components;
     Transform* transform = nullptr;
-    Mesh* mesh = nullptr;
 };
 
 #endif // GAMEOBJECT_H

@@ -101,7 +101,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    icons.qrc \
     icons.qrc
 
 DISTFILES += \
@@ -115,3 +114,10 @@ DISTFILES += \
     Resources/icons/Document-new.png \
     Resources/icons/Folder.png \
     Resources/icons/Info.png
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimp
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimpd
+else:unix: LIBS += -L$$PWD/Assimp/lib/ -lassimp
+
+INCLUDEPATH += $$PWD/Assimp/include
+DEPENDPATH += $$PWD/Assimp/include
