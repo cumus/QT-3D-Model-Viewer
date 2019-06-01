@@ -6,10 +6,19 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
+#include <QPoint>
 
 class Scene;
 class Resources;
 class Mesh;
+class Transform;
+
+struct Camera
+{
+    Transform* transform;
+    QMatrix4x4 m_proj;
+    int m_projMatrixLoc;
+};
 
 class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -27,29 +36,27 @@ public:
     void LoadMesh(Mesh* mesh = nullptr);
 
 protected:
+
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int width, int height) override;
-
-    /*void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;*/
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 public:
-    // Scene
+
     Scene* scene = nullptr;
     Resources* resources = nullptr;
 
 private:
+
     int tick_count = 0;
-
-    // camera
-    QMatrix4x4 m_proj;
-    QMatrix4x4 m_camera;
-    //QMatrix4x4 m_world;
-
     int program_index = -1;
 
-    int m_projMatrixLoc;
+    Camera cam;
+    QPoint mouse_pos;
+
     int m_mvMatrixLoc;
     int m_normalMatrixLoc;
     int m_lightPosLoc;

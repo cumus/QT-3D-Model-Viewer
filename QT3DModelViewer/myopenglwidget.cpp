@@ -6,9 +6,9 @@
 #include "transform.h"
 
 #include <QtWidgets>
-//#include <QMouseEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
 #include <QOpenGLShaderProgram>
-//#include <QCoreApplication>
 //#include <QOpenGLTexture>
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
@@ -43,8 +43,8 @@ static const char *fragmentShaderSource =
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), tick_count(0), program_index(-1)
 {
-    m_camera.setToIdentity();
-    m_camera.translate(0, 0, -1);
+    setFocusPolicy(Qt::ClickFocus);
+    cam.transform = new Transform(nullptr, true, {0,0,0});
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -74,7 +74,7 @@ QSize MyOpenGLWidget::sizeHint() const
 void MyOpenGLWidget::Tick()
 {
     tick_count++;
-    update();
+    //update();
 }
 
 void MyOpenGLWidget::initializeGL()
@@ -89,7 +89,7 @@ void MyOpenGLWidget::initializeGL()
     resources->programs[program_index]->link();
 
     resources->programs[program_index]->bind();
-    m_projMatrixLoc = resources->programs[program_index]->uniformLocation("projMatrix");
+    cam.m_projMatrixLoc = resources->programs[program_index]->uniformLocation("projMatrix");
     m_mvMatrixLoc = resources->programs[program_index]->uniformLocation("mvMatrix");
     m_normalMatrixLoc = resources->programs[program_index]->uniformLocation("normalMatrix");
     m_lightPosLoc = resources->programs[program_index]->uniformLocation("lightPos");
@@ -118,13 +118,11 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
 
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
 
-
-
     QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
 
     resources->programs[program_index]->bind();
-    resources->programs[program_index]->setUniformValue(m_projMatrixLoc, m_proj);
-    resources->programs[program_index]->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
+    resources->programs[program_index]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
+    resources->programs[program_index]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix() * m_world);
     resources->programs[program_index]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
     resources->programs[program_index]->setUniformValue(m_lightPosLoc, QVector3D((tick_count%40) - 20, 0, (tick_count%60) - 30));
 
@@ -148,7 +146,6 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     mesh->vbo.bind();
     mesh->vbo.allocate(mesh->constData(), mesh->count() * sizeof(GLfloat));
 
-
     // Store the vertex attribute bindings for the program.
     mesh->vbo.bind();
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
@@ -161,6 +158,34 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
 
 void MyOpenGLWidget::resizeGL(int width, int height)
 {
-    m_proj.setToIdentity();
-    m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 100.0f);
+    cam.m_proj.setToIdentity();
+    cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 100.0f);
+}
+
+void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
+{
+    qDebug() << (mouse_pos = event->pos());
+}
+
+void MyOpenGLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    qDebug() << "Mouse moved";
+}
+
+void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
+{
+    qDebug() << "KEY press: " << event->key();
+
+    switch (event->key())
+    {
+    case Qt::Key_W: cam.transform->TranslateForward(0.05); break;
+    case Qt::Key_S: cam.transform->TranslateForward(-0.05); break;
+    case Qt::Key_A: cam.transform->TranslateLeft(0.05); break;
+    case Qt::Key_D: cam.transform->TranslateLeft(-0.05); break;
+    case Qt::Key_Space: cam.transform->TranslateUp(0.05); break;
+    case Qt::Key_E: cam.transform->TranslateUp(-0.05); break;
+    default: break;
+    }
+
+    update();
 }
