@@ -24,10 +24,9 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
     
 protected:
-    //void paintEvent(QPaintEvent* event) override;
 
 private:
     Ui::MainWindow *ui;

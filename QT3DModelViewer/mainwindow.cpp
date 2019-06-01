@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setFocusPolicy(Qt::ClickFocus);
+
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
     myOpenGLWidget->scene = scene = new Scene();
     myOpenGLWidget->resources = resources = new Resources();
