@@ -2,6 +2,8 @@
 #include "component.h"
 #include "transform.h"
 #include "mesh.h"
+#include <qfile.h>
+#include "myopenglwidget.h"
 
 GameObject::GameObject(QString name,
                        GameObject* parent,
@@ -73,10 +75,33 @@ void GameObject::CleanUp()
     childs.clear();
 }
 
-void GameObject::importModel(QString path)
+void GameObject::importModel(QString path, MyOpenGLWidget* renderer)
 {
     Assimp::Importer import;
-    const aiScene *scene = import.ReadFile(path.toStdString(), aiProcess_Triangulate | aiProcess_FlipUVs);
+    //const aiScene *scene = import.ReadFile(path.toStdString(), aiProcess_Triangulate | aiProcess_FlipUVs);
+
+    //##################
+    QFile file(path);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << file.errorString() << path << endl;
+        qDebug() << "Could not open file for read: " << path << endl;
+        return;
+    }
+
+    QByteArray data = file.readAll();
+
+    const aiScene *scene = import.ReadFileFromMemory(
+                data.data(), data.size(),
+                aiProcess_Triangulate |
+                aiProcess_FlipUVs |
+                aiProcess_GenSmoothNormals |
+                aiProcess_OptimizeMeshes |
+                aiProcess_PreTransformVertices |
+                aiProcess_ImproveCacheLocality ,
+                ".obj");
+
+    //##################
 
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -84,23 +109,23 @@ void GameObject::importModel(QString path)
         return;
     }
 
-    processNode(scene->mRootNode, scene);
+    processNode(scene->mRootNode, scene, renderer);
 }
 
-void GameObject::processNode(aiNode *node, const aiScene *scene)
+void GameObject::processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        processMesh(scene->mMeshes[node->mMeshes[i]], scene);
+        processMesh(scene->mMeshes[node->mMeshes[i]], scene, renderer);
     }
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
         GameObject *go = new GameObject(node->mName.C_Str(),this);
-        go->processNode(node->mChildren[i], scene);
+        go->processNode(node->mChildren[i], scene, renderer);
     }
 }
 
-void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene)
+void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget* renderer)
 {
     Mesh *mesh = new Mesh(this);
 
@@ -159,6 +184,15 @@ void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene)
     mesh->vertices = vertices;
     mesh->indices = indices;
     mesh->textures = textures;
+
+   /* for (int i = 0; i < vertices.count();i++)
+    {
+        mesh->add(vertices[i].Position, vertices[i].Normal);
+    }
+
+    qDebug() << "MESH::ASSIMP::" << (renderer == nullptr) << mesh->count() << endl;
+
+    renderer->LoadMesh(mesh);*/
 }
 
 QVector<Texture> GameObject::loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName)

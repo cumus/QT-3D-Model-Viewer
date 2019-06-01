@@ -108,6 +108,10 @@ DISTFILES += \
     Assimp/lib/assimp.lib \
     Assimp/lib/assimpd.dll \
     Assimp/lib/assimpd.lib \
+    Models/Patrick/Color.png \
+    Models/Patrick/Flowers.png \
+    Models/Patrick/Patrick.mtl \
+    Models/Patrick/Skin_Patrick.png \
     Resources/icons/Badge-multiply.png \
     Resources/icons/Disquette.png \
     Resources/icons/Doc.png \

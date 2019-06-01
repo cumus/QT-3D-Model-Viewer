@@ -32,9 +32,9 @@ public:
     void Load(QDataStream& stream);
     void CleanUp();
 
-    void importModel(QString path);
-    void processNode(aiNode *node, const aiScene *scene);
-    void processMesh(aiMesh *aimesh, const aiScene *scene);
+    void importModel(QString path, MyOpenGLWidget* renderer = nullptr);
+    void processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
+    void processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
     QVector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName);
 
 public:

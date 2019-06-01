@@ -7,6 +7,7 @@
 
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
+#include <QApplication>
 
 Scene::Scene()
 {
@@ -21,10 +22,12 @@ Scene::~Scene()
 
 Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
 {
-    GameObject* go = AddGameObject("Demo Cube");
-    Mesh* mesh = new Mesh(go);
-    mesh->LoadFromFile("QtLogo", renderer);
-    return mesh;
+    //GameObject* go = AddGameObject("Demo Cube");
+    //Mesh* mesh = new Mesh(go);
+    //mesh->LoadFromFile("QtLogo", renderer);
+    GameObject* goPatrick = AddGameObject("Patrick");
+    goPatrick->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
+    return nullptr;
 }
 
 void Scene::Clear()

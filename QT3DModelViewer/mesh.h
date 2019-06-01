@@ -46,9 +46,10 @@ public:
 private:
     void quad(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3, GLfloat x4, GLfloat y4);
     void extrude(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
+
+    public:
     void add(const QVector3D &v, const QVector3D &n);
 
-public:
     QVector<Vertex> vertices;
     QVector<unsigned int> indices;
     QVector<Texture> textures;
