@@ -32,7 +32,12 @@ public:
     void RotateAxisLeft(float angle);
     void RotateAxisUp(float angle);
     void RotateAxisForward(float angle);
+    void RemoveRoll();
     void SetScale(QVector3D scale);
+
+    QVector3D GetPos() const;
+    QVector3D GetRot() const;
+    QVector3D GetScale() const;
 
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;

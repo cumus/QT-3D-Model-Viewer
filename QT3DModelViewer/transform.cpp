@@ -1,6 +1,7 @@
 #include "transform.h"
 #include "gameobject.h"
 //#include <math.h>
+#include <QTransform>
 
 Transform::Transform(GameObject* go, bool isActive, QVector3D pos, QVector3D rot, QVector3D scale) :
     Component(TRANSFORM, go, isActive),
@@ -82,7 +83,7 @@ void Transform::TranslateForward(float dist)
 void Transform::SetRotXYZ(QVector3D rot)
 {
     local_rot = rot;
-    local_qrot.fromEulerAngles(local_rot);
+    local_qrot = local_qrot.fromEulerAngles(local_rot);
 
     isUpdated = false;
 }
@@ -90,21 +91,21 @@ void Transform::SetRotXYZ(QVector3D rot)
 void Transform::RotateX(float x)
 {
     local_rot.setX(local_rot.x() + x);
-    local_qrot.fromEulerAngles(local_rot);
+    local_qrot = local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
 }
 
 void Transform::RotateY(float y)
 {
     local_rot.setY(local_rot.y() + y);
-    local_qrot.fromEulerAngles(local_rot);
+    local_qrot = local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
 }
 
 void Transform::RotateZ(float z)
 {
     local_rot.setZ(local_rot.z() + z);
-    local_qrot.fromEulerAngles(local_rot);
+    local_qrot = local_qrot.fromEulerAngles(local_rot);
     isUpdated = false;
 }
 
@@ -112,11 +113,9 @@ void Transform::RotateAngleAxis(float angle, QVector3D axis)
 {
     QQuaternion rot;
     float yaw, pitch, roll;
-
-    local_qrot = rot.fromAxisAndAngle(axis, angle) * local_qrot;
+    local_qrot = local_qrot * rot.fromAxisAndAngle(axis, angle);
     local_qrot.getEulerAngles(&pitch, &yaw, &roll);
-    local_rot = {-pitch, -yaw, roll};
-
+    local_rot = {pitch, yaw, roll};
     isUpdated = false;
 }
 
@@ -125,7 +124,7 @@ void Transform::RotateAxisLeft(float angle)
     if (!isUpdated)
         GetWorldMatrix();
 
-    RotateAngleAxis(angle, world_left);
+    RotateAngleAxis(angle, {1,0,0});
 }
 
 void Transform::RotateAxisUp(float angle)
@@ -133,7 +132,7 @@ void Transform::RotateAxisUp(float angle)
     if (!isUpdated)
         GetWorldMatrix();
 
-    RotateAngleAxis(angle, world_up);
+    RotateAngleAxis(angle, {0,1,0});
 }
 
 void Transform::RotateAxisForward(float angle)
@@ -141,13 +140,34 @@ void Transform::RotateAxisForward(float angle)
     if (!isUpdated)
         GetWorldMatrix();
 
-    RotateAngleAxis(angle, world_forward);
+    RotateAngleAxis(angle, {0,0,1});
+}
+
+void Transform::RemoveRoll()
+{
+    local_rot.setZ(0);
+    isUpdated = false;
 }
 
 void Transform::SetScale(QVector3D scale)
 {
     local_scale = scale;
     isUpdated = false;
+}
+
+QVector3D Transform::GetPos() const
+{
+    return local_pos;
+}
+
+QVector3D Transform::GetRot() const
+{
+    return local_rot;
+}
+
+QVector3D Transform::GetScale() const
+{
+    return local_scale;
 }
 
 void Transform::Save(QDataStream &stream) {}
@@ -164,14 +184,11 @@ QMatrix4x4 Transform::GetWorldMatrix()
             world_m = gameobject->parent->transform->GetWorldMatrix();
 
         world_m.translate(local_pos);
-        //world_m.rotate(local_qrot);
-        world_m.rotate(local_rot.x(), 1.0f, 0.0f, 0.0f);
-        world_m.rotate(local_rot.y(), 0.0f, 1.0f, 0.0f);
-        world_m.rotate(local_rot.z(), 0.0f, 0.0f, 1.0f);
+        world_m.rotate(local_qrot);
         world_m.scale(local_scale);
 
         world_left = world_m.column(0).toVector3D().normalized();
-        world_up = world_m.column(1).toVector3D().normalized() * -1;
+        world_up = world_m.column(1).toVector3D().normalized();
         world_forward = world_m.column(2).toVector3D().normalized();
 
         isUpdated = true;

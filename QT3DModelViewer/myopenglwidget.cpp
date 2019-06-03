@@ -45,7 +45,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), tick_count(0), program_index(-1)
 {
     setFocusPolicy(Qt::ClickFocus);
-    cam.transform = new Transform(nullptr, true, {0,0,-1});
+    cam.transform = new Transform(nullptr, true, {0,0,1});
 
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
 
@@ -84,10 +84,10 @@ void MyOpenGLWidget::Tick()
 {
     tick_count += tick_period;
 
-    if (cam_dir[0]) cam.transform->TranslateForward(0.01f * tick_period);
-    if (cam_dir[1]) cam.transform->TranslateForward(-0.01f * tick_period);
-    if (cam_dir[2]) cam.transform->TranslateLeft(0.01f * tick_period);
-    if (cam_dir[3]) cam.transform->TranslateLeft(-0.01f * tick_period);
+    if (cam_dir[0]) cam.transform->TranslateForward(-0.01f * tick_period);
+    if (cam_dir[1]) cam.transform->TranslateForward(0.01f * tick_period);
+    if (cam_dir[2]) cam.transform->TranslateLeft(-0.01f * tick_period);
+    if (cam_dir[3]) cam.transform->TranslateLeft(0.01f * tick_period);
     if (cam_dir[4]) cam.transform->TranslateUp(0.01f * tick_period);
     if (cam_dir[5]) cam.transform->TranslateUp(-0.01f * tick_period);
 
@@ -124,8 +124,6 @@ void MyOpenGLWidget::paintGL()
     glEnable(GL_DEPTH_TEST); // Enable depth buffer
     glEnable(GL_CULL_FACE); // Enable back face culling
 
-    qDebug() << cam.transform->GetWorldMatrix();
-
     if (scene != nullptr)
         scene->Draw(this);
 }
@@ -135,6 +133,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     if (mesh == nullptr || mesh->vertexCount() <= 0)
         return;
 
+    //mesh->gameobject->transform->RotateY(1);
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
 
     QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
@@ -169,10 +168,36 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     mesh->vbo.bind();
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     f->glEnableVertexAttribArray(PROGRAM_VERTEX_ATTRIBUTE);
-    f->glEnableVertexAttribArray(PROGRAM_NORMAL_ATTRIBUTE);
     f->glVertexAttribPointer(PROGRAM_VERTEX_ATTRIBUTE, 3, GL_FLOAT, GL_FALSE, 6 * static_cast<int>(sizeof(GLfloat)), nullptr);
+    f->glEnableVertexAttribArray(PROGRAM_NORMAL_ATTRIBUTE);
     f->glVertexAttribPointer(PROGRAM_NORMAL_ATTRIBUTE, 3, GL_FLOAT, GL_FALSE, 6 * static_cast<int>(sizeof(GLfloat)), reinterpret_cast<void *>(3 * sizeof(GLfloat)));
     mesh->vbo.release();
+
+
+    /*glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
+                 &indices[0], GL_STATIC_DRAW);
+
+    // vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    // vertex normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+    // vertex texture coords
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+
+    glBindVertexArray(0);*/
 }
 
 void MyOpenGLWidget::resizeGL(int width, int height)
@@ -188,10 +213,12 @@ void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
 
 void MyOpenGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    mouse_pos = event->localPos() - mouse_pos;
-    cam.transform->RotateAxisUp(static_cast<float>(mouse_pos.x()));
-    //cam.transform->RotateAxisLeft(static_cast<float>(-mouse_pos.y()));
+    cam.transform->RotateAxisUp(static_cast<float>((mouse_pos - event->localPos()).x()));
+    cam.transform->RotateAxisLeft(static_cast<float>((mouse_pos - event->localPos()).y()));
     mouse_pos = event->localPos();
+
+    // correct roll
+    cam.transform->RotateAxisForward(-cam.transform->GetRot().z());
 }
 
 void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
