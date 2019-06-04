@@ -92,7 +92,7 @@ void GameObject::importModel(QString path, MyOpenGLWidget* renderer)
     QByteArray data = file.readAll();
 
     const aiScene *scene = import.ReadFileFromMemory(
-                data.data(), data.size(),
+                data.data(), static_cast<int>(data.size()),
                 aiProcess_Triangulate |
                 aiProcess_FlipUVs |
                 aiProcess_GenSmoothNormals |
@@ -114,13 +114,27 @@ void GameObject::importModel(QString path, MyOpenGLWidget* renderer)
 
 void GameObject::processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer)
 {
+    aiMatrix4x4 t = node->mTransformation;
+    aiVector3D pos, scale;
+    aiQuaternion rot;
+    t.Decompose(scale, rot, pos);
+
+    transform->SetPos({pos.x, pos.y, pos.z});
+    transform->SetRotQ({rot.x, rot.y, rot.z, rot.w});
+    transform->SetScale({scale.x, scale.y, scale.z});
+
+    qDebug() << "Node " << name.toStdString().c_str() << ": " << node->mNumChildren << " childs, " << node->mNumMeshes << " meshes"
+             << "at: " << pos.x << pos.y << pos.z << "-" << scale.x << scale.y << scale.z;
+
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        processMesh(scene->mMeshes[node->mMeshes[i]], scene, renderer);
+        if (scene->mMeshes[node->mMeshes[i]]->mNumVertices > 0)
+            processMesh(scene->mMeshes[node->mMeshes[i]], scene, renderer);
     }
+
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        GameObject *go = new GameObject(node->mName.C_Str(),this);
+        GameObject *go = new GameObject(node->mChildren[i]->mName.C_Str(),this);
         go->processNode(node->mChildren[i], scene, renderer);
     }
 }
@@ -129,70 +143,78 @@ void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidge
 {
     Mesh *mesh = new Mesh(this);
 
-    QVector<Vertex> vertices;
-    QVector<unsigned int> indices;
-    QVector<Texture> textures;
-
-    //Process MESHES NORMAL & TEXCOORDS
+    //Process each MESH VERTEX, NORMAL & TEXCOORDS
     for (unsigned int i = 0; i < aimesh->mNumVertices; i++)
     {
         Vertex vertex;
 
-        QVector3D vector;
-        vector.setX(aimesh->mVertices[i].x);
-        vector.setY(aimesh->mVertices[i].y);
-        vector.setZ(aimesh->mVertices[i].z);
-        vertex.Position = vector;
+        vertex.Position.setX(aimesh->mVertices[i].x);
+        vertex.Position.setY(aimesh->mVertices[i].y);
+        vertex.Position.setZ(aimesh->mVertices[i].z);
 
-        vector.setX(aimesh->mNormals[i].x);
-        vector.setY(aimesh->mNormals[i].y);
-        vector.setZ(aimesh->mNormals[i].z);
-        vertex.Normal = vector;
+        vertex.Normal.setX(aimesh->mNormals[i].x);
+        vertex.Normal.setY(aimesh->mNormals[i].y);
+        vertex.Normal.setZ(aimesh->mNormals[i].z);
 
         if(aimesh->mTextureCoords[0])
         {
-            QVector2D vec;
-            vec.setX(aimesh->mTextureCoords[0][i].x);
-            vec.setY(aimesh->mTextureCoords[0][i].y);
-            vertex.TexCoords = vec;
+            vertex.TexCoords.setX(aimesh->mTextureCoords[0][i].x);
+            vertex.TexCoords.setY(aimesh->mTextureCoords[0][i].y);
         }
         else
             vertex.TexCoords = QVector2D(0.0f, 0.0f);
 
-        vertices.push_back(vertex);
+        mesh->vertices.push_back(vertex);
     }
 
-    //Process INDICES
-    for(unsigned int i = 0; i < aimesh->mNumFaces; i++)
+    mesh->num_vertices = static_cast<int>(aimesh->mNumVertices);
+    mesh->vertex_data.resize(mesh->num_vertices * 3);
+    mesh->normal_data.resize(mesh->num_vertices * 3);
+    mesh->texcoord_data.resize(mesh->num_vertices * 2);
+
+    for (int i = 0; i < mesh->num_vertices; i++)
+    {
+        GLfloat* float_p = mesh->vertex_data.data() + (3 * i);
+        *float_p++ = mesh->vertices[i].Position.x();
+        *float_p++ = mesh->vertices[i].Position.y();
+        *float_p++ = mesh->vertices[i].Position.z();
+
+        float_p = mesh->normal_data.data() + (3 * i);
+        *float_p++ = mesh->vertices[i].Normal.x();
+        *float_p++ = mesh->vertices[i].Normal.y();
+        *float_p++ = mesh->vertices[i].Normal.z();
+
+        GLint* int_p = mesh->texcoord_data.data() + (2 * i);
+        *int_p++ = static_cast<GLint>(mesh->vertices[i].TexCoords.x());
+        *int_p++ = static_cast<GLint>(mesh->vertices[i].TexCoords.y());
+    }
+
+    //Process each MESH FACE, 3 INDEX each
+    mesh->num_faces = static_cast<int>(aimesh->mNumFaces);
+    mesh->index_data.resize(mesh->num_faces * 3);
+
+    for(int i = 0; i < mesh->num_faces; i++)
     {
         aiFace face = aimesh->mFaces[i];
-        for(unsigned int j = 0; j < face.mNumIndices; j++)
-            indices.push_back(face.mIndices[j]);
+        GLint* int_p = mesh->index_data.data() + (3 * i);
+        *int_p++ = static_cast<GLint>(face.mIndices[0]);
+        *int_p++ = static_cast<GLint>(face.mIndices[1]);
+        *int_p++ = static_cast<GLint>(face.mIndices[2]);
     }
 
-    //Proces MATERIALS
-    if(aimesh->mMaterialIndex >= 0)
+    /*/Proces MATERIALS
+    if(aimesh->mMaterialIndex > 0)
     {
-        /*aiMaterial *material = scene->mMaterials[aimesh->mMaterialIndex];
+        aiMaterial *material = scene->mMaterials[aimesh->mMaterialIndex];
         QVector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         QVector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    */
-    }
+    }*/
 
-    mesh->vertices = vertices;
-    mesh->indices = indices;
-    mesh->textures = textures;
+    qDebug() << " - Mesh Loading: " << aimesh->mName.C_Str() << " with " << mesh->vertices.count()<< " vertices";
 
-   /* for (int i = 0; i < vertices.count();i++)
-    {
-        mesh->add(vertices[i].Position, vertices[i].Normal);
-    }
-
-    qDebug() << "MESH::ASSIMP::" << (renderer == nullptr) << mesh->count() << endl;
-
-    renderer->LoadMesh(mesh);*/
+    renderer->LoadMesh(mesh);
 }
 
 QVector<Texture> GameObject::loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName)

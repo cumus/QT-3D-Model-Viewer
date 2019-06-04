@@ -88,6 +88,15 @@ void Transform::SetRotXYZ(QVector3D rot)
     isUpdated = false;
 }
 
+void Transform::SetRotQ(QQuaternion rot)
+{
+    local_qrot = rot;
+    float yaw, pitch, roll;
+    local_qrot.getEulerAngles(&pitch, &yaw, &roll);
+    local_rot = {pitch, yaw, roll};
+    isUpdated = false;
+}
+
 void Transform::RotateX(float x)
 {
     local_rot.setX(local_rot.x() + x);

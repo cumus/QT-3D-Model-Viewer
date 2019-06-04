@@ -13,6 +13,7 @@ class Resources;
 class Mesh;
 class Transform;
 class QTimer;
+class QOpenGLTexture;
 
 struct Camera
 {
@@ -65,6 +66,10 @@ private:
     int m_mvMatrixLoc;
     int m_normalMatrixLoc;
     int m_lightPosLoc;
+    int m_lightIntensityLoc;
+    int m_textureLoc;
+
+    QOpenGLTexture* tex = nullptr;
 };
 
 #endif // MYOPENGLWIDGET_H

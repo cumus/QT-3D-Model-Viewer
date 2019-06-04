@@ -33,34 +33,28 @@ public:
 
     void Draw(MyOpenGLWidget* renderer) override;
 
-    void LoadFromFile(QString filename, MyOpenGLWidget* renderer = nullptr);
-
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;
     void CleanUp() override;
 
-    const GLfloat *constData() const { return m_data.constData(); }
-    int count() const { return m_count; }
-    int vertexCount() const { return m_count / 6; }
-
-private:
-    void quad(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3, GLfloat x4, GLfloat y4);
-    void extrude(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
-
-    public:
-    void add(const QVector3D &v, const QVector3D &n);
-
+public:
     QVector<Vertex> vertices;
     QVector<unsigned int> indices;
     QVector<Texture> textures;
 
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;
+    QOpenGLBuffer nbo;
+    QOpenGLBuffer tbo;
+    QOpenGLBuffer ibo;
 
-private:
-    QVector<GLfloat> m_data;
-    int m_count;
+    QVector<GLfloat> vertex_data;
+    QVector<GLfloat> normal_data;
+    QVector<GLint> texcoord_data;
+    QVector<GLint> index_data;
 
+    int num_vertices;
+    int num_faces;
 };
 
 #endif // MODEL_H

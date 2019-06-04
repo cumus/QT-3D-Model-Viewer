@@ -25,6 +25,7 @@ public:
     void TranslateUp(float dist);
     void TranslateForward(float dist);
     void SetRotXYZ(QVector3D rot);
+    void SetRotQ(QQuaternion rot);
     void RotateX(float x);
     void RotateY(float y);
     void RotateZ(float z);

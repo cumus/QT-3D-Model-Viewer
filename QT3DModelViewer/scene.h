@@ -24,6 +24,7 @@ public:
 
 public:
     GameObject* root = nullptr;
+    GameObject* goPatrick = nullptr;
     //Resources* resources = nullptr;
 };
 
