@@ -50,8 +50,8 @@ public:
 
     QVector<GLfloat> vertex_data;
     QVector<GLfloat> normal_data;
-    QVector<GLint> texcoord_data;
-    QVector<GLint> index_data;
+    QVector<GLfloat> texcoord_data;
+    QVector<GLuint> index_data;
 
     int num_vertices;
     int num_faces;

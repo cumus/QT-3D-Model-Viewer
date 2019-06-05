@@ -10,7 +10,7 @@
 #include <QKeyEvent>
 #include <QOpenGLShaderProgram>
 #include <QTimer>
-//#include <QOpenGLTexture>
+#include <QOpenGLTexture>
 
 static const char *vertexShaderSource =
     "attribute vec4 vertex;\n"
@@ -39,9 +39,10 @@ static const char *fragmentShaderSource =
     "void main() {\n"
     "   highp vec3 L = normalize(lightPos - vert);\n"
     "   highp float NL = max(dot(normalize(vertNormal), L), 0.0);\n"
-    "   highp vec3 color = vec3(1,0,0);\n"
-    "   gl_FragColor = vec4(color,1);\n"
-    //"   gl_FragColor = texture2D(texture, texc.st);\n"
+    "   highp vec3 color = vec3(0.39, 1.0, 0.0);\n"
+    "   highp vec3 col = clamp(color * 0.2 + color * 0.8 * NL, 0.0, 1.0);\n"
+    //"   gl_FragColor = vec4(col, 1.0);\n"
+    "   gl_FragColor = texture2D(texture, texc.st);\n"
     "}\n";
 
 /*/000000000000000000000000000000000000000
@@ -138,7 +139,7 @@ void MyOpenGLWidget::initializeGL()
 
     resources->programs[program_index]->release();
 
-    tex = new QOpenGLTexture(QImage(QString(":/icons/Resources/icons/Folder.png")).mirrored());
+    tex = new QOpenGLTexture(QImage(QString(qApp->applicationDirPath() + "/Models/Patrick/Skin_Patrick.png")).mirrored());
 
     scene->InitDemo(this);
 }
@@ -146,7 +147,7 @@ void MyOpenGLWidget::initializeGL()
 void MyOpenGLWidget::paintGL()
 {
     // RESET
-    glClearColor(0, 1, 0, 1);
+    glClearColor(0.1, 0.1, 0.1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST); // Enable depth buffer
@@ -168,12 +169,11 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     //mesh->gameobject->transform->RotateY(1);
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
 
-    //QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
 
-    mesh->vbo.bind();
+    /*mesh->vbo.bind();
     mesh->nbo.bind();
     mesh->tbo.bind();
-    mesh->ibo.bind();
+    mesh->ibo.bind();*/
 
     resources->programs[program_index]->bind();
     resources->programs[program_index]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
@@ -182,12 +182,18 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     resources->programs[program_index]->setUniformValue(m_lightPosLoc, QVector3D(0, 1, 0));
     resources->programs[program_index]->setUniformValue(m_lightIntensityLoc, QVector3D(1, 1, 1));
 
-    //tex->bind();
+    tex->bind();
+    resources->programs[program_index]->setUniformValue(m_textureLoc, 0);
+
+
 
     //glDrawArrays(GL_TRIANGLES, 0, mesh->VertexCount());
 
 
-    glDrawElements(GL_TRIANGLES, mesh->num_faces * 3, GL_INT, mesh->index_data.constData());//sizeof(GL_INT));
+
+    QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
+    //glActiveTexture(0);
+    glDrawElements(GL_TRIANGLES, mesh->num_faces * 3, GL_UNSIGNED_INT, nullptr);//mesh->index_data.constData());//sizeof(GL_INT));
 
     resources->programs[program_index]->release();
 }
@@ -222,10 +228,10 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     mesh->tbo.create();
     mesh->tbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->tbo.bind();
-    mesh->tbo.allocate(mesh->texcoord_data.constData(), 2 * mesh->num_vertices * static_cast<int>(sizeof(GLint)));
+    mesh->tbo.allocate(mesh->texcoord_data.constData(), 2 * mesh->num_vertices * static_cast<int>(sizeof(GLfloat)));
 
     resources->programs[program_index]->enableAttributeArray(2);
-    resources->programs[program_index]->setAttributeBuffer(2, GL_INT, 0, 2);
+    resources->programs[program_index]->setAttributeBuffer(2, GL_FLOAT, 0, 2);
 
     /*/ Store the vertex attribute bindings for the program.
     //mesh->vbo.bind();
@@ -238,7 +244,7 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     mesh->ibo.create();
     mesh->ibo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->ibo.bind();
-    mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLfloat)));
+    mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
 
     /*glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

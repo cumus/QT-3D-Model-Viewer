@@ -156,7 +156,7 @@ void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidge
         vertex.Normal.setY(aimesh->mNormals[i].y);
         vertex.Normal.setZ(aimesh->mNormals[i].z);
 
-        if(aimesh->mTextureCoords[0])
+        if(aimesh->HasTextureCoords(0))
         {
             vertex.TexCoords.setX(aimesh->mTextureCoords[0][i].x);
             vertex.TexCoords.setY(aimesh->mTextureCoords[0][i].y);
@@ -184,9 +184,9 @@ void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidge
         *float_p++ = mesh->vertices[i].Normal.y();
         *float_p++ = mesh->vertices[i].Normal.z();
 
-        GLint* int_p = mesh->texcoord_data.data() + (2 * i);
-        *int_p++ = static_cast<GLint>(mesh->vertices[i].TexCoords.x());
-        *int_p++ = static_cast<GLint>(mesh->vertices[i].TexCoords.y());
+        float_p = mesh->texcoord_data.data() + (2 * i);
+        *float_p++ = mesh->vertices[i].TexCoords.x();
+        *float_p++ = mesh->vertices[i].TexCoords.y();
     }
 
     //Process each MESH FACE, 3 INDEX each
@@ -196,10 +196,10 @@ void GameObject::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidge
     for(int i = 0; i < mesh->num_faces; i++)
     {
         aiFace face = aimesh->mFaces[i];
-        GLint* int_p = mesh->index_data.data() + (3 * i);
-        *int_p++ = static_cast<GLint>(face.mIndices[0]);
-        *int_p++ = static_cast<GLint>(face.mIndices[1]);
-        *int_p++ = static_cast<GLint>(face.mIndices[2]);
+        GLuint* int_p = mesh->index_data.data() + (3 * i);
+        *int_p++ = static_cast<GLuint>(face.mIndices[0]);
+        *int_p++ = static_cast<GLuint>(face.mIndices[1]);
+        *int_p++ = static_cast<GLuint>(face.mIndices[2]);
     }
 
     /*/Proces MATERIALS
