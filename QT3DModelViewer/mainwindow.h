@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include <QTreeWidget>
+
+#include "gameobject.h"
 
 class Resources;
 class Scene;
@@ -53,6 +56,9 @@ public slots:
     void removeEntityButtonClicked();
 
     void changeBackGroundColor();*/
+
+    void addChild(GameObject *node);
+    void addNodeHierarchyTree();
 };
 
 #endif // MAINWINDOW_H

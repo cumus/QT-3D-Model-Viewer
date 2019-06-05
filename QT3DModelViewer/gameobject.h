@@ -4,6 +4,8 @@
 #include <QString>
 #include <QVector>
 #include <QVector3D>
+#include <qtreewidget.h>
+#include <QTreeWidgetItem>
 
 #include "mesh.h"
 
@@ -40,6 +42,7 @@ public:
 public:
     QString name = "untitled_go";
     int id = -1;
+    QTreeWidgetItem *hierarchyItem;
 
     GameObject* parent = nullptr;
     QVector<GameObject*> childs;

@@ -7,6 +7,7 @@
 #include "scene.h"
 
 #include <QtWidgets>
+#include <QtGui>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -54,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(uiHierarchy->listWidget, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)), this, SLOT(changeSelectedGemaObject()));*/
 
+    connect(ui->loadMeshButton, SIGNAL(clicked()), this, SLOT(addNodeHierarchyTree()));
+
     //Menu Bar Connexions
     /*connect(ui->actionNewScene, SIGNAL(triggered()), this, SLOT(newScene()));
     connect(ui->actionOpenScene, SIGNAL(triggered()), this, SLOT(openScene()));
@@ -71,3 +74,29 @@ MainWindow::~MainWindow()
     delete scene;
     delete ui;
 }
+
+void MainWindow::addChild(GameObject *node)
+{
+    QVector<GameObject*>::iterator child = node->childs.begin();
+    for (; child != node->childs.end(); child++)
+    {
+        QTreeWidgetItem *treeItem = new QTreeWidgetItem();
+        treeItem->setText(0, (*child)->name);
+        (*child)->hierarchyItem = treeItem;
+        node->hierarchyItem->addChild(treeItem);
+
+        addChild((*child));
+    }
+}
+
+void MainWindow::addNodeHierarchyTree()
+{
+    ui->hierarchy->clear();
+
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->hierarchy);
+    treeItem->setText(0,scene->root->name);
+    scene->root->hierarchyItem = treeItem;
+    ui->hierarchy->addTopLevelItem(treeItem);
+    addChild(scene->root);
+}
+
