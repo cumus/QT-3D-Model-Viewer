@@ -22,14 +22,12 @@ Scene::~Scene()
 
 Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
 {
-    //GameObject* go = AddGameObject("Demo Cube");
-    //Mesh* mesh = new Mesh(go);
-    //mesh->LoadFromFile("QtLogo", renderer);
     goPatrick = AddGameObject("Patrick");
+    Mesh* mesh = new Mesh(goPatrick);
 
     qDebug() << "HERE" << qApp->applicationDirPath();
 
-    goPatrick->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
+    mesh->importModel(qApp->applicationDirPath() + "/Models/PalmTree/PalmTree.obj", renderer);
     return nullptr;
 }
 

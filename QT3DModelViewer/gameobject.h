@@ -9,10 +9,6 @@
 
 #include "mesh.h"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 class Component;
 class Transform;
 class MyOpenGLWidget;
@@ -34,10 +30,6 @@ public:
     void Load(QDataStream& stream);
     void CleanUp();
 
-    void importModel(QString path, MyOpenGLWidget* renderer = nullptr);
-    void processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
-    void processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
-    QVector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName);
 
 public:
     QString name = "untitled_go";

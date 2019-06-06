@@ -14,6 +14,7 @@ class Mesh;
 class Transform;
 class QTimer;
 class QOpenGLTexture;
+class SubMesh;
 
 struct Camera
 {
@@ -35,7 +36,7 @@ public:
     void Tick();
 
     void DrawMesh(Mesh* mesh = nullptr);
-    void LoadMesh(Mesh* mesh = nullptr);
+    void LoadMesh(SubMesh* mesh = nullptr);
 
 protected:
 
@@ -57,19 +58,18 @@ private:
     QTimer *timer = nullptr;
     int tick_count = 0;
     float tick_period = 3.0f;
-    int program_index = -1;
 
     Camera cam;
     QPointF mouse_pos;
     bool cam_dir[6];
+
+    int program_index = -1;
 
     int m_mvMatrixLoc;
     int m_normalMatrixLoc;
     int m_lightPosLoc;
     int m_lightIntensityLoc;
     int m_textureLoc;
-
-    QOpenGLTexture* tex = nullptr;
 };
 
 #endif // MYOPENGLWIDGET_H

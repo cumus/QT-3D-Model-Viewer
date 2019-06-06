@@ -8,8 +8,12 @@
 #include <QVector2D>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
+#include <QOpenGLTexture>
 
-QT_FORWARD_DECLARE_CLASS(QOpenGLBuffer)
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 struct Vertex {
     QVector3D Position;
@@ -22,8 +26,37 @@ struct Texture {
     QString type;
 };
 
+class SubMesh
+{
+public:
+    SubMesh():
+    vbo(QOpenGLBuffer::VertexBuffer),
+    nbo(QOpenGLBuffer::VertexBuffer),
+    tbo(QOpenGLBuffer::VertexBuffer),
+    ibo(QOpenGLBuffer::IndexBuffer){}
+
+    int num_vertices = 0;
+    int num_faces = 0;
+
+    QVector<Vertex> vertices;
+    QVector<unsigned int> indices;
+
+    QVector<GLfloat> vertex_data;
+    QVector<GLfloat> normal_data;
+    QVector<GLfloat> texcoord_data;
+    QVector<GLuint> index_data;
+
+    QOpenGLVertexArrayObject vao;
+    QOpenGLBuffer vbo;
+    QOpenGLBuffer nbo;
+    QOpenGLBuffer tbo;
+    QOpenGLBuffer ibo;
+
+    QOpenGLFunctions *f = nullptr;
+    QOpenGLTexture* texture = nullptr;
+};
+
 class MyOpenGLWidget;
-//class Resources;
 
 class Mesh : public Component
 {
@@ -37,24 +70,17 @@ public:
     void Load(QDataStream& stream) override;
     void CleanUp() override;
 
+    void importModel(QString path, MyOpenGLWidget* renderer = nullptr);
+    void processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
+    SubMesh* processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
+
 public:
-    QVector<Vertex> vertices;
-    QVector<unsigned int> indices;
-    QVector<Texture> textures;
 
-    QOpenGLVertexArrayObject vao;
-    QOpenGLBuffer vbo;
-    QOpenGLBuffer nbo;
-    QOpenGLBuffer tbo;
-    QOpenGLBuffer ibo;
+    QVector<SubMesh*> sub_meshes;
 
-    QVector<GLfloat> vertex_data;
-    QVector<GLfloat> normal_data;
-    QVector<GLfloat> texcoord_data;
-    QVector<GLuint> index_data;
+private:
 
-    int num_vertices;
-    int num_faces;
+    QString directory;
 };
 
 #endif // MODEL_H

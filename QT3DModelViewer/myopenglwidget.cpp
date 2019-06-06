@@ -67,7 +67,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), tick_count(0), program_index(-1)
 {
     setFocusPolicy(Qt::ClickFocus);
-    cam.transform = new Transform(nullptr, true, {0,0,1});
+    cam.transform = new Transform(nullptr, true, {0,0,2});
 
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
 
@@ -139,23 +139,17 @@ void MyOpenGLWidget::initializeGL()
 
     resources->programs[program_index]->release();
 
-    tex = new QOpenGLTexture(QImage(QString(qApp->applicationDirPath() + "/Models/Patrick/Skin_Patrick.png")).mirrored());
-
     scene->InitDemo(this);
 }
 
 void MyOpenGLWidget::paintGL()
 {
     // RESET
-    glClearColor(0.1, 0.1, 0.1, 1);
+    glClearColor(0.1f, 0.1f, 0.1f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST); // Enable depth buffer
     glEnable(GL_CULL_FACE); // Enable back face culling
-
-    float y = tick_count%100;
-    y = (y/100.0f)-0.5f;
-    scene->goPatrick->transform->SetPos({0,y,0});
 
     if (scene != nullptr)
         scene->Draw(this);
@@ -166,39 +160,38 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     if (mesh == nullptr)// || !mesh->vao.isCreated())
         return;
 
-    //mesh->gameobject->transform->RotateY(1);
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
-
-
-    /*mesh->vbo.bind();
-    mesh->nbo.bind();
-    mesh->tbo.bind();
-    mesh->ibo.bind();*/
+    m_world.rotate(180.f, {0,0,1});
 
     resources->programs[program_index]->bind();
     resources->programs[program_index]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
-    resources->programs[program_index]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
+    resources->programs[program_index]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world.inverted());
     resources->programs[program_index]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
     resources->programs[program_index]->setUniformValue(m_lightPosLoc, QVector3D(0, 1, 0));
     resources->programs[program_index]->setUniformValue(m_lightIntensityLoc, QVector3D(1, 1, 1));
 
-    tex->bind();
-    resources->programs[program_index]->setUniformValue(m_textureLoc, 0);
+    for(int i = 0; i < mesh->sub_meshes.size(); i++)
+    {
+        SubMesh* sub = mesh->sub_meshes[i];
 
+        if(sub->vao.isCreated())
+        {
+            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
 
+            if(sub->texture != nullptr && sub->texture->isCreated())
+                sub->texture->bind();
 
-    //glDrawArrays(GL_TRIANGLES, 0, mesh->VertexCount());
-
-
-
-    QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
-    //glActiveTexture(0);
-    glDrawElements(GL_TRIANGLES, mesh->num_faces * 3, GL_UNSIGNED_INT, nullptr);//mesh->index_data.constData());//sizeof(GL_INT));
+            if(sub->num_faces > 0)
+                glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
+            else
+                glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
+        }
+    }
 
     resources->programs[program_index]->release();
 }
 
-void MyOpenGLWidget::LoadMesh(Mesh *mesh)
+void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
 {
     if (mesh == nullptr || mesh->num_vertices <= 0 || mesh->num_faces <= 0)
         return;
@@ -206,7 +199,7 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     mesh->vao.create();
     QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
 
-    // Setup our vertex buffer object
+    // Setup our POSITIONS
     mesh->vbo.create();
     mesh->vbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->vbo.bind();
@@ -215,7 +208,7 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     resources->programs[program_index]->enableAttributeArray(0);
     resources->programs[program_index]->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 
-    // Setup our normal buffer object
+    // Setup our NORMALS
     mesh->nbo.create();
     mesh->nbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->nbo.bind();
@@ -224,7 +217,7 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     resources->programs[program_index]->enableAttributeArray(1);
     resources->programs[program_index]->setAttributeBuffer(1, GL_FLOAT, 0, 3);
 
-    // Setup our normal buffer object
+    // Setup TEXTURE COORDS
     mesh->tbo.create();
     mesh->tbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->tbo.bind();
@@ -233,43 +226,13 @@ void MyOpenGLWidget::LoadMesh(Mesh *mesh)
     resources->programs[program_index]->enableAttributeArray(2);
     resources->programs[program_index]->setAttributeBuffer(2, GL_FLOAT, 0, 2);
 
-    /*/ Store the vertex attribute bindings for the program.
-    //mesh->vbo.bind();
-    f->glEnableVertexAttribArray(1);
-    f->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * static_cast<int>(sizeof(GLfloat)), reinterpret_cast<void *>(3 * sizeof(GLfloat)));
-    f->glEnableVertexAttribArray(2);
-    f->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * static_cast<int>(sizeof(GLfloat)), reinterpret_cast<void *>(6 * sizeof(GLfloat)));
-    //mesh->vbo.release();*/
-
+    // Setup INDEXES
     mesh->ibo.create();
     mesh->ibo.setUsagePattern( QOpenGLBuffer::StaticDraw );
     mesh->ibo.bind();
     mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
 
-    /*glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-                 &indices[0], GL_STATIC_DRAW);
-
-    // vertex positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-
-    glBindVertexArray(0);*/
+    mesh->f = QOpenGLContext::currentContext()->functions();
 }
 
 void MyOpenGLWidget::resizeGL(int width, int height)
