@@ -176,15 +176,23 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
 
         if(sub->vao.isCreated())
         {
-            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
+            bool release_texture = false;
 
             if(sub->texture != nullptr && sub->texture->isCreated())
+            {
                 sub->texture->bind();
+                release_texture = true;
+            }
+
+            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
 
             if(sub->num_faces > 0)
                 glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
             else
                 glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
+
+            if (release_texture)
+                sub->texture->release();
         }
     }
 

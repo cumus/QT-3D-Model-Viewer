@@ -27,7 +27,7 @@ Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
 
     qDebug() << "HERE" << qApp->applicationDirPath();
 
-    mesh->importModel(qApp->applicationDirPath() + "/Models/PalmTree/PalmTree.obj", renderer);
+    mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
     return nullptr;
 }
 

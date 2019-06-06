@@ -47,13 +47,13 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
     QByteArray data = file.readAll();
 
     const aiScene *scene = import.ReadFileFromMemory(
-                data.data(), static_cast<int>(data.size()),
+                data.data(), static_cast<size_t>(data.size()),
                 aiProcess_Triangulate |
                 aiProcess_FlipUVs |
                 aiProcess_GenSmoothNormals |
                 aiProcess_OptimizeMeshes |
                 aiProcess_PreTransformVertices |
-                aiProcess_ImproveCacheLocality ,
+                aiProcess_ImproveCacheLocality,
                 ".obj");
 
     //##################
@@ -168,15 +168,44 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
     if(scene->HasMaterials())
     {
         aiString path;
-        scene->mMaterials[aimesh->mMaterialIndex]->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+        aiMaterial* mat = scene->mMaterials[aimesh->mMaterialIndex];
 
-        QString file = directory;
-        file += path.C_Str();
-        qDebug() << file;
+        if(aiReturn_SUCCESS == aiGetMaterialTexture(mat, aiTextureType_DIFFUSE, 0, &path))
+        {
+            QString file = directory;
+            file += path.C_Str();
+            qDebug() << path.C_Str();
 
-        QImage image(file);
-        if (!image.isNull())
-            sub_mesh->texture = new QOpenGLTexture(image);
+            QImage image(file);
+            if (!image.isNull())
+                sub_mesh->texture = new QOpenGLTexture(image);
+        }
+        else
+        {
+            qDebug() << "ERROR::ASSIMP:: could not load material " << aimesh->mMaterialIndex;
+
+            QString folder = "/";
+            for (int i = directory.length() - 2; i > 0; i--)
+            {
+                if(directory[i] != "/") folder = directory[i] + folder;
+                else break;
+            }
+
+            // hardcoded loading textures
+            if (folder == "Patrick/")
+            {
+                switch (aimesh->mMaterialIndex)
+                {
+                case 1: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // brows
+                case 2: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // eyes
+                case 3: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // pupils
+                case 4: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Flowers.png")); break; // pants
+                case 5: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Skin_Patrick.png")); break; //body
+                case 6: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // mouth
+                default: break;
+                }
+            }
+        }
     }
 
     qDebug() << " - Mesh Loading: " << aimesh->mName.C_Str() << " with " << sub_mesh->vertices.count()<< " vertices";
