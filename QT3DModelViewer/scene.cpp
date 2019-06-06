@@ -3,7 +3,6 @@
 #include "component.h"
 #include "transform.h"
 #include "mesh.h"
-#include "resources.h"
 
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>

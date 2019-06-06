@@ -2,8 +2,6 @@
 
 #include "ui_mainwindow.h"
 #include "myopenglwidget.h"
-
-#include "resources.h"
 #include "scene.h"
 
 #include <QtWidgets>
@@ -20,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
     myOpenGLWidget->scene = scene = new Scene();
-    myOpenGLWidget->resources = resources = new Resources();
 
     /*/ Hierarchy
     QWidget *hierarchyWidget = new QWidget();

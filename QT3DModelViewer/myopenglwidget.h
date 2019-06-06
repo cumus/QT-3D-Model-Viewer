@@ -7,6 +7,12 @@
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
 #include <QPoint>
+#include <QVector3D>
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+#include <QOpenGLFunctions>
+QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
 class Scene;
 class Resources;
@@ -23,7 +29,16 @@ struct Camera
     int m_projMatrixLoc;
 };
 
-class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+struct Light
+{
+    QVector3D Position;
+    QVector3D Color;
+    float Intensity;
+    float Radius;
+    int TypeLight; // 0 Directional, 1 PointLight
+};
+
+class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
 public:
@@ -51,25 +66,55 @@ protected:
 public:
 
     Scene* scene = nullptr;
-    Resources* resources = nullptr;
 
 private:
 
+    // Time control
     QTimer *timer = nullptr;
     int tick_count = 0;
     float tick_period = 3.0f;
 
+    int width, height;
+
+    // Camera
     Camera cam;
     QPointF mouse_pos;
     bool cam_dir[6];
 
-    int program_index = -1;
+    QVector3D lightPos;
+    QVector3D lightColor;
 
+    // Shaders
+    QVector<QOpenGLShaderProgram*> programs;
+
+    // Shader uniforms
     int m_mvMatrixLoc;
     int m_normalMatrixLoc;
     int m_lightPosLoc;
     int m_lightIntensityLoc;
     int m_textureLoc;
+
+    // Lights
+    QList<Light> lights;
+
+public:
+
+    void InitDeferredRenderer();
+    void DeleteBuffers();
+    void Resize(int width,int height);
+
+    void Render();
+    void RenderQuad();
+
+    int renderView = 0;
+    unsigned int gBuffer; //fbo
+    unsigned int gPosition, gNormal, gAlbedoSpec;
+    unsigned int rboDepth; //rbo
+
+    unsigned int attachments[3];
+
+    unsigned int quadVAO = 0;
+    unsigned int quadVBO;
 };
 
 #endif // MYOPENGLWIDGET_H

@@ -22,6 +22,10 @@ void Mesh::Draw(MyOpenGLWidget* renderer)
     renderer->DrawMesh(this);
 }
 
+void Mesh::DrawS(QOpenGLShaderProgram *p, MyOpenGLWidget *renderer)
+{
+
+}
 void Mesh::Save(QDataStream &stream) {}
 void Mesh::Load(QDataStream &stream) {}
 

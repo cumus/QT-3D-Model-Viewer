@@ -31,7 +31,6 @@ SOURCES += \
         mainwindow.cpp \
         mesh.cpp \
         myopenglwidget.cpp \
-        resources.cpp \
         scene.cpp \
         transform.cpp
 
@@ -88,7 +87,6 @@ HEADERS += \
         mainwindow.h \
         mesh.h \
         myopenglwidget.h \
-        resources.h \
         scene.h \
         transform.h
 
@@ -117,7 +115,13 @@ DISTFILES += \
     Resources/icons/Doc.png \
     Resources/icons/Document-new.png \
     Resources/icons/Folder.png \
-    Resources/icons/Info.png
+    Resources/icons/Info.png \
+    deferred_light.frag \
+    deferred_light.vert \
+    deferred_shading.frag \
+    deferred_shading.vert \
+    graphic_buffer.frag \
+    graphic_buffer.vert
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimp
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimpd

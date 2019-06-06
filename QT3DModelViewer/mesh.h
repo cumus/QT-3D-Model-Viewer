@@ -57,6 +57,7 @@ public:
 };
 
 class MyOpenGLWidget;
+class QOpenGLShaderProgram;
 
 class Mesh : public Component
 {
@@ -65,6 +66,7 @@ public:
     ~Mesh() override;
 
     void Draw(MyOpenGLWidget* renderer) override;
+    void DrawS(QOpenGLShaderProgram* p, MyOpenGLWidget* renderer);
 
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;
