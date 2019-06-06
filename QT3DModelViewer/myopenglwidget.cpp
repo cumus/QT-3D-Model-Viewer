@@ -36,13 +36,20 @@ static const char *fragmentShaderSource =
     "varying mediump vec4 texc;\n"
     "uniform highp vec3 lightPos;\n"
     "uniform highp vec3 light_intensity;\n"
+    "uniform float mode;\n"
     "uniform sampler2D texture;\n"
     "void main() {\n"
     "   highp vec3 L = normalize(lightPos - vert);\n"
     "   highp vec3 NL = texture2D(texture, texc.st) * dot(L,vertNormal) * light_intensity;\n"
-    "   gl_FragColor = vec4(normalize(NL), 1.0);\n"
-    //"   gl_FragColor = vec4(vertNormal, 1.0);\n"
-    //"   gl_FragColor = vec4(vert, 1.0);\n"
+
+    "   if (mode == 0)\n"
+    "       gl_FragColor = texture2D(texture, texc.st);\n"
+    "   else if (mode == 1)\n"
+    "       gl_FragColor = vec4(vertNormal, 1.0);\n"
+    "   else if (mode == 2)\n"
+    "       gl_FragColor = vec4(vert, 1.0);\n"
+    "   else\n"
+    "       gl_FragColor = vec4(normalize(NL), 1.0);\n"
     "}\n";
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -127,6 +134,7 @@ void MyOpenGLWidget::initializeGL()
     m_lightPosLoc =         programs[0]->uniformLocation("lightPos");
     m_lightIntensityLoc =   programs[0]->uniformLocation("light_intensity");
     m_textureLoc =          programs[0]->uniformLocation("texture");
+    m_modeLoc =          programs[0]->uniformLocation("mode");
 
     programs[0]->release();
 
@@ -181,6 +189,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
     programs[0]->setUniformValue(m_lightPosLoc, lightPos);
     programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
+    programs[0]->setUniformValue(m_modeLoc, mode);
 
     for(int i = 0; i < mesh->sub_meshes.size(); i++)
     {
@@ -290,6 +299,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space: cam_dir[4] = true; break;
     case Qt::Key_E: cam_dir[5] = true; break;
     case Qt::Key_F: lightPos = cam.transform->GetPos(); break;
+    case Qt::Key_X: mode = mode+1.f>3.f?0:mode+1; break;
     default: break;
     }
 }

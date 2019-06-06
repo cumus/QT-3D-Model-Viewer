@@ -93,6 +93,9 @@ private:
     int m_lightPosLoc;
     int m_lightIntensityLoc;
     int m_textureLoc;
+    int m_modeLoc;
+
+    float mode = 0;
 
     // Lights
     QList<Light> lights;
