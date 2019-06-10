@@ -58,7 +58,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
     setMinimumSize(QSize(256, 256));
 
-    cam.transform = new Transform(nullptr, true, {0,0,2});
+    cam.transform = new Transform(nullptr, true, {0,0,5},{0,0,0});
     lightPos = {0,0,2};
     lightColor = {1, 1, 1};
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
@@ -185,7 +185,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
 
     programs[0]->bind();
     programs[0]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
-    programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world.inverted());
+    programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
     programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
     programs[0]->setUniformValue(m_lightPosLoc, lightPos);
     programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
@@ -197,12 +197,12 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
 
         if(sub->vao.isCreated())
         {
-            bool release_texture = false;
-
-            if(sub->texture != nullptr && sub->texture->isCreated())
+            for (int i = 0; i < sub->textures.size(); i++)
             {
-                sub->texture->bind();
-                release_texture = true;
+                if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
+                {
+                    sub->textures[i].glTexture->bind();
+                }
             }
 
             QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
@@ -212,8 +212,13 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
             else
                 glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
 
-            if (release_texture)
-                sub->texture->release();
+            for (int i = 0; i < sub->textures.count(); i++)
+            {
+                if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
+                {
+                    sub->textures[i].glTexture->release();
+                }
+            }
         }
     }
 
@@ -539,7 +544,7 @@ void MyOpenGLWidget::Resize(int width,int height)
 
 void MyOpenGLWidget::Render()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 1. geometry pass: render scene's geometry/color data into gbuffer
@@ -561,7 +566,7 @@ void MyOpenGLWidget::Render()
                                        GL_FALSE,
                                        go->transform->GetWorldMatrix().data());
 
-                glActiveTexture(GL_TEXTURE0);*/
+                glActiveTexture(GL_TEXTURE0);*//*
 
                 QVector<SubMesh*> submeshes = static_cast<Mesh*>(go->components[1])->sub_meshes;
 
@@ -649,7 +654,7 @@ void MyOpenGLWidget::Render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     programs[2]->setUniformValue("gPosition", 0);
-}
+*/}
 
 void MyOpenGLWidget::RenderQuad()
 {

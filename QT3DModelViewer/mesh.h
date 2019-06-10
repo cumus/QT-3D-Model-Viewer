@@ -19,11 +19,14 @@ struct Vertex {
     QVector3D Position;
     QVector3D Normal;
     QVector2D TexCoords;
+    QVector3D Tangent;
+    QVector3D Bitangent;
 };
 
 struct Texture {
-    unsigned int id;
+    QOpenGLTexture* glTexture;
     QString type;
+    QString path;
 };
 
 class SubMesh
@@ -51,9 +54,10 @@ public:
     QOpenGLBuffer nbo;
     QOpenGLBuffer tbo;
     QOpenGLBuffer ibo;
+    QOpenGLBuffer bbo;
 
     QOpenGLFunctions *f = nullptr;
-    QOpenGLTexture* texture = nullptr;
+    QVector<Texture> textures;
 };
 
 class MyOpenGLWidget;
@@ -75,10 +79,12 @@ public:
     void importModel(QString path, MyOpenGLWidget* renderer = nullptr);
     void processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
     SubMesh* processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget* renderer = nullptr);
+    QVector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName);
 
 public:
 
     QVector<SubMesh*> sub_meshes;
+    QVector<Texture> texturesLoaded;
 
 private:
 

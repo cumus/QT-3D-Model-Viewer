@@ -37,7 +37,6 @@ void Mesh::CleanUp()
 void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 {
     Assimp::Importer import;
-    //const aiScene *scene = import.ReadFile(path.toStdString(), aiProcess_Triangulate | aiProcess_FlipUVs);
 
     //##################
     QFile file(path);
@@ -50,6 +49,16 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 
     QByteArray data = file.readAll();
 
+    const aiScene *scene = import.ReadFile(
+                    path.toStdString(),
+                    aiProcess_Triangulate |
+                    aiProcess_GenSmoothNormals |
+                    aiProcess_FixInfacingNormals |
+                    aiProcess_JoinIdenticalVertices |
+                    aiProcess_PreTransformVertices |
+                    aiProcess_FlipUVs |
+                    aiProcess_OptimizeMeshes);
+    /*
     const aiScene *scene = import.ReadFileFromMemory(
                 data.data(), static_cast<size_t>(data.size()),
                 aiProcess_Triangulate |
@@ -57,9 +66,10 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
                 aiProcess_GenSmoothNormals |
                 aiProcess_OptimizeMeshes |
                 aiProcess_PreTransformVertices |
-                aiProcess_ImproveCacheLocality,
+                aiProcess_SortByPType |
+                aiProcess_ImproveCacheLocality),
                 ".obj");
-
+*/
     //##################
 
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -130,6 +140,17 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
         else
             vertex.TexCoords = QVector2D(0.0f, 0.0f);
 
+        if(aimesh->HasTangentsAndBitangents())
+        {
+            vertex.Tangent.setX(aimesh->mTangents[i].x);
+            vertex.Tangent.setY(aimesh->mTangents[i].y);
+            vertex.Tangent.setZ(aimesh->mTangents[i].z);
+
+            vertex.Bitangent.setX(aimesh->mBitangents[i].x);
+            vertex.Bitangent.setY(aimesh->mBitangents[i].y);
+            vertex.Bitangent.setZ(aimesh->mBitangents[i].z);
+        }
+
         sub_mesh->vertices.push_back(vertex);
     }
 
@@ -168,8 +189,19 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
         *int_p++ = static_cast<GLuint>(face.mIndices[2]);
     }
 
+    if(aimesh->mMaterialIndex > 0)
+    {
+        aiMaterial *material = scene->mMaterials[aimesh->mMaterialIndex];
+
+        QVector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        sub_mesh->textures << diffuseMaps;
+
+        QVector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        sub_mesh->textures << specularMaps;
+    }
+
     //Proces MATERIALS
-    if(scene->HasMaterials())
+    /*if(scene->HasMaterials())
     {
         aiString path;
         aiMaterial* mat = scene->mMaterials[aimesh->mMaterialIndex];
@@ -210,11 +242,43 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
                 }
             }
         }
-    }
+    }*/
 
     qDebug() << " - Mesh Loading: " << aimesh->mName.C_Str() << " with " << sub_mesh->vertices.count()<< " vertices";
 
     renderer->LoadMesh(sub_mesh);
 
     return sub_mesh;
+}
+
+QVector<Texture> Mesh::loadMaterialTextures(aiMaterial *mat, aiTextureType type, QString typeName)
+{
+    //qDebug() << "CARGANDO MATERIAL: " << mat->GetTextureCount(type) << " - " << typeName;
+    QVector<Texture> textures;
+    for(unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+    {
+        aiString str;
+        mat->GetTexture(type, i, &str);
+        bool skip = false;
+        for(unsigned int j = 0; j < texturesLoaded.size(); j++)
+        {
+            if(texturesLoaded[j].path.contains(str.C_Str()))
+            {
+                textures.push_back(texturesLoaded[j]);
+                skip = true;
+                break;
+            }
+        }
+        if(!skip)
+        {   // if texture hasn't been loaded already, load it
+            Texture texture;
+            texture.glTexture =  new QOpenGLTexture(QImage(directory + str.C_Str()));
+            //qDebug() << "NEW TEXTURE";
+            texture.type = typeName;
+            texture.path = str.C_Str();
+            textures.push_back(texture);
+            texturesLoaded.push_back(texture); // add to loaded textures
+        }
+    }
+    return textures;
 }

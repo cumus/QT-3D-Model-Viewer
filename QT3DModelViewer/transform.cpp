@@ -9,6 +9,7 @@ Transform::Transform(GameObject* go, bool isActive, QVector3D pos, QVector3D rot
     local_rot(rot),
     local_scale(scale)
 {
+    local_qrot = local_qrot.fromEulerAngles(local_rot);
     GetWorldMatrix();
 }
 
