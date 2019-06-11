@@ -27,14 +27,14 @@ Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
     goPatrick->transform->SetPos({-2,0,0});
     Mesh* mesh = new Mesh(goPatrick);
     mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
-    //mesh->draw_border = true;
+    mesh->draw_border = true;
 
     GameObject* p2 = AddGameObject("Patrick 2");
     p2->transform->SetPos({3,0,2});
     p2->transform->SetRotXYZ({0,-90,0});
     Mesh* mesh2 = new Mesh(p2);
     mesh2->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
-    mesh2->draw_border = true;
+    //mesh2->draw_border = true;
 
     return nullptr;
 }
