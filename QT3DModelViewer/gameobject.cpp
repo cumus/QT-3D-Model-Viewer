@@ -28,24 +28,6 @@ GameObject::~GameObject()
     CleanUp();
 }
 
-/*template <class T>
-T* GameObject::AddComponent(int i)
-{
-    T* ret = nullptr;
-
-    switch(ComponentTYPE(i))
-    {
-    case MESH:
-    {
-        return new Mesh(this);
-    }
-    default: break;
-
-    }
-
-    return ret;
-}*/
-
 void GameObject::Draw(MyOpenGLWidget* renderer)
 {
     // Check if active

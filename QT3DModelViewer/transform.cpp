@@ -119,8 +119,20 @@ void Transform::RotateZ(float z)
     isUpdated = false;
 }
 
+void Transform::RotateQ(QQuaternion rot)
+{
+    float yaw, pitch, roll;
+    local_qrot *= rot;
+    local_qrot.getEulerAngles(&pitch, &yaw, &roll);
+    local_rot = {pitch, yaw, roll};
+    isUpdated = false;
+}
+
 void Transform::RotateAngleAxis(float angle, QVector3D axis)
 {
+    if (!isUpdated)
+        GetWorldMatrix();
+
     QQuaternion rot;
     float yaw, pitch, roll;
     local_qrot = local_qrot * rot.fromAxisAndAngle(axis, angle);

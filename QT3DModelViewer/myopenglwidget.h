@@ -12,7 +12,6 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
-#include <QQueue>
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
 class Scene;
@@ -25,18 +24,26 @@ class SubMesh;
 
 enum SHADER_TYPE : int
 {
-    DEFAULT,
+    DEFAULT = 0,
     SINGLE_COLOR,
     GRAPHIC_BUFFER,
     DEFERRED_LIGHT,
     DEFERRED_SHADING
 };
 
+enum RENDER_STATE : int
+{
+    INITIALIZING,
+    RENDERING_MODELS,
+    DRAWING_BORDERED,
+    DRAWING_BORDERS,
+    FINISHED
+};
+
 struct Camera
 {
     Transform* transform;
     QMatrix4x4 m_proj;
-    int m_projMatrixLoc;
 };
 
 struct Light
@@ -60,8 +67,8 @@ public:
 
     void Tick();
 
-    void DrawMesh(Mesh* mesh = nullptr);
-    void LoadMesh(SubMesh* mesh = nullptr);
+    void DrawMesh(Mesh* mesh = nullptr, SHADER_TYPE shader = DEFAULT);
+    void LoadSubMesh(SubMesh* mesh = nullptr);
 
 protected:
 
@@ -72,11 +79,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
-
-private:
-
-    void DrawBorderedMesh(Mesh* mesh = nullptr);
-    void DrawBorder(Mesh* mesh = nullptr);
 
 public:
 
@@ -95,12 +97,15 @@ public:
     // Stencil Border
     float border_scale = 1.1f;
     QVector3D border_color;
+    bool border_over_borderless = true; // border depth test
 
     // Shaders
     QVector<QOpenGLShaderProgram*> programs;
     float mode = 0;
 
 private:
+
+    RENDER_STATE state;
 
     // Time control
     QTimer *timer = nullptr;
@@ -111,16 +116,22 @@ private:
     int width, height;
 
     // Shader uniforms
-    int m_mvMatrixLoc;
-    int m_normalMatrixLoc;
-    int m_lightPosLoc;
-    int m_lightIntensityLoc;
-    int m_textureLoc;
-    int m_modeLoc;
-    int m_flat_diffuse;
+    // Default
+    int d_mvMatrixLoc;
+    int d_normalMatrixLoc;
+    int d_projMatrixLoc;
+    int d_lightPosLoc;
+    int d_lightIntensityLoc;
+    int d_textureLoc;
+    int d_modeLoc;
+    int d_flat_diffuse;
+    // Single Color
+    int sc_modelView;
+    int sc_proj;
+    int sc_color;
 
     // Border stack vector
-    QQueue<Mesh*> border_meshes;
+    QVector<Mesh*> border_meshes;
 
 
 public:

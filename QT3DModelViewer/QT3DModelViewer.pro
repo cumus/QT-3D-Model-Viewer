@@ -124,6 +124,8 @@ DISTFILES += \
     Shaders/deferred_shading.vert \
     Shaders/graphic_buffer.frag \
     Shaders/graphic_buffer.vert \
+    Shaders/singlecolor.frag \
+    Shaders/singlecolor.vert \
     default.frag \
     default.vert \
     deferred_light.frag \
@@ -131,7 +133,8 @@ DISTFILES += \
     deferred_shading.frag \
     deferred_shading.vert \
     graphic_buffer.frag \
-    graphic_buffer.vert
+    graphic_buffer.vert \
+    singlecolor.frag
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimp
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimpd

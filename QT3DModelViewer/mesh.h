@@ -42,9 +42,9 @@ public:
 
     int num_vertices = 0;
     int num_faces = 0;
-
     QVector<Vertex> vertices;
     QVector<unsigned int> indices;
+    QVector<Texture> textures;
 
     QVector<GLfloat> vertex_data;
     QVector<GLfloat> normal_data;
@@ -60,9 +60,6 @@ public:
     QOpenGLBuffer tnbo;
     QOpenGLBuffer btnbo;
     QOpenGLBuffer ibo;
-
-    QOpenGLFunctions *f = nullptr;
-    QVector<Texture> textures;
 };
 
 class MyOpenGLWidget;
@@ -75,7 +72,6 @@ public:
     ~Mesh() override;
 
     void Draw(MyOpenGLWidget* renderer) override;
-    void DrawS(QOpenGLShaderProgram* p, MyOpenGLWidget* renderer);
 
     void Save(QDataStream& stream) override;
     void Load(QDataStream& stream) override;

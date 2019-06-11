@@ -29,6 +29,7 @@ public:
     void RotateX(float x);
     void RotateY(float y);
     void RotateZ(float z);
+    void RotateQ(QQuaternion rot);
     void RotateAngleAxis(float angle, QVector3D axis);
     void RotateAxisLeft(float angle);
     void RotateAxisUp(float angle);

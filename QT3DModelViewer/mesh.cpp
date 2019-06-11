@@ -22,10 +22,6 @@ void Mesh::Draw(MyOpenGLWidget* renderer)
     renderer->DrawMesh(this);
 }
 
-void Mesh::DrawS(QOpenGLShaderProgram *p, MyOpenGLWidget *renderer)
-{
-
-}
 void Mesh::Save(QDataStream &stream) {}
 void Mesh::Load(QDataStream &stream) {}
 
@@ -38,7 +34,7 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 {
     Assimp::Importer import;
 
-    //##################
+    /*/##################
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))
     {
@@ -47,7 +43,7 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
         return;
     }
 
-    QByteArray data = file.readAll();
+    QByteArray data = file.readAll();*/
 
     const aiScene *scene = import.ReadFile(
                     path.toStdString(),
@@ -90,7 +86,7 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 
     processNode(scene->mRootNode, scene, renderer);
 
-    file.close();
+    //file.close();
 }
 
 void Mesh::processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* renderer)
@@ -99,9 +95,8 @@ void Mesh::processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* rende
     aiVector3D pos, scale;
     aiQuaternion rot;
     t.Decompose(scale, rot, pos);
-
-    gameobject->transform->SetPos({pos.x, pos.y, pos.z});
-    gameobject->transform->SetRotQ({rot.x, rot.y, rot.z, rot.w});
+    gameobject->transform->Translate({pos.x, pos.y, pos.z});
+    gameobject->transform->RotateQ({rot.x, rot.y, rot.z, rot.w});
     gameobject->transform->SetScale({scale.x, scale.y, scale.z});
 
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -226,7 +221,7 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
 
     qDebug() << " - Mesh Loading: " << aimesh->mName.C_Str() << " with " << sub_mesh->vertices.count()<< " vertices";
 
-    renderer->LoadMesh(sub_mesh);
+    renderer->LoadSubMesh(sub_mesh);
 
     return sub_mesh;
 }

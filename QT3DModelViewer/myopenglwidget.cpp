@@ -24,6 +24,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
 
     border_color = QVector3D(1,0.27f,0);
+    border_meshes.clear();
 
     // Tick Widget
     timer = new QTimer(this);
@@ -68,6 +69,7 @@ void MyOpenGLWidget::Tick()
 
 void MyOpenGLWidget::initializeGL()
 {
+    state = INITIALIZING;
     initializeOpenGLFunctions();
 
     // First Light
@@ -80,11 +82,12 @@ void MyOpenGLWidget::initializeGL()
     lights.push_back(base);
 
     // Default shader
+    QOpenGLShaderProgram* d_shader = new QOpenGLShaderProgram;
     programs.push_back(new QOpenGLShaderProgram);
     if (!programs[0]->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/default.vert"))
-        qDebug() << "Error loading deault.vert shader";
+        qDebug() << "Error loading default.vert shader";
     if (!programs[0]->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/default.frag"))
-        qDebug() << "Error loading deault.frag shader";
+        qDebug() << "Error loading default.frag shader";
 
     programs[0]->bindAttributeLocation("vertex", 0);
     programs[0]->bindAttributeLocation("normal", 1);
@@ -97,16 +100,39 @@ void MyOpenGLWidget::initializeGL()
     if (!programs[0]->bind())
         qDebug() << "Error Binding Default Shader";
 
-    cam.m_projMatrixLoc =   programs[0]->uniformLocation("projMatrix");
-    m_mvMatrixLoc =         programs[0]->uniformLocation("mvMatrix");
-    m_normalMatrixLoc =     programs[0]->uniformLocation("normalMatrix");
-    m_lightPosLoc =         programs[0]->uniformLocation("lightPos");
-    m_lightIntensityLoc =   programs[0]->uniformLocation("light_intensity");
-    m_modeLoc =             programs[0]->uniformLocation("mode");
-    m_flat_diffuse =        programs[0]->uniformLocation("flat_diffuse");
-    m_textureLoc =          programs[0]->uniformLocation("texture");
+    d_projMatrixLoc =       programs[0]->uniformLocation("projMatrix");
+    d_mvMatrixLoc =         programs[0]->uniformLocation("mvMatrix");
+    d_normalMatrixLoc =     programs[0]->uniformLocation("normalMatrix");
+    d_lightPosLoc =         programs[0]->uniformLocation("lightPos");
+    d_lightIntensityLoc =   programs[0]->uniformLocation("light_intensity");
+    d_modeLoc =             programs[0]->uniformLocation("mode");
+    d_flat_diffuse =        programs[0]->uniformLocation("flat_diffuse");
+    d_textureLoc =          programs[0]->uniformLocation("texture");
 
-    programs[0]->release();
+    //programs.push_back(d_shader);
+    //d_shader->release();
+
+    /*/ Single Color shader
+    QOpenGLShaderProgram* sc_shader = new QOpenGLShaderProgram();
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/singlecolor.vert"))
+        qDebug() << "Error loading singlecolor.vert shader";
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/singlecolor.frag"))
+        qDebug() << "Error loading singlecolor.frag shader";
+
+    sc_shader->bindAttributeLocation("aPos", 0);
+    sc_shader->bindAttributeLocation("texCoord", 1);
+
+    if (!sc_shader->link())
+        qDebug() << "Error Linking Default Shader";
+    if (!sc_shader->bind())
+        qDebug() << "Error Binding Default Shader";
+
+    sc_modelView = sc_shader->uniformLocation("modelview");
+    sc_proj =      sc_shader->uniformLocation("projection");
+    sc_color =     sc_shader->uniformLocation("flat_color");
+
+    programs.push_back(sc_shader);
+    sc_shader->release();*/
 
 
     /*/ Shaders
@@ -151,90 +177,122 @@ void MyOpenGLWidget::paintGL()
 
     glStencilMask(0x00);
 
+    state = RENDERING_MODELS;
+    border_meshes.clear();
+
     //Render();
     if (scene != nullptr)
         scene->Draw(this);
 
     if (!border_meshes.isEmpty())
     {
-        // Draw mesh and write to stencil
+        qDebug() << border_meshes.count();
+        state = DRAWING_BORDERED;
+
+        /*/ Draw mesh and write to stencil
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
 
         for (int i = 0; i < 1; i++)
-            DrawBorderedMesh(border_meshes[i]);
+            DrawMesh(border_meshes[i]);
+
+        state = DRAWING_BORDERS;
 
         // Draw border from stencil
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
+
+        if (border_over_borderless) glDisable(GL_DEPTH_TEST);
 
         for (int i = 0; i < 1; i++)
-            DrawBorder(border_meshes[i]);
+            DrawMesh(border_meshes[i], SINGLE_COLOR);
 
         glStencilMask(0xFF);
-        glEnable(GL_DEPTH_TEST);
+
+        if (border_over_borderless) glEnable(GL_DEPTH_TEST);*/
 
         border_meshes.clear();
     }
+
+    state = FINISHED;
 }
 
-void MyOpenGLWidget::DrawMesh(Mesh* mesh)
+void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
 {
-    if (mesh == nullptr)
-    {
-        return;
-    }
-    else if (mesh->draw_border)
+    if (mesh == nullptr || shader >= programs.count()) return;
+
+    /*else if (mesh->draw_border && state == RENDERING_MODELS)
     {
         border_meshes.push_back(mesh);
+        //qDebug() << "Bordered: shader" << shader << mesh->gameobject->name << mesh->texturesLoaded.count() << border_meshes.count();
         return;
-    }
+    }*/
 
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
     m_world.rotate(180.f, {0,0,1});
 
+    QOpenGLShaderProgram* program = programs[static_cast<int>(shader)];
     programs[0]->bind();
-    programs[0]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
-    programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
-    programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
 
-    programs[0]->setUniformValue(m_lightPosLoc, lightPos);
-    programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
-    programs[0]->setUniformValue(m_modeLoc, mode);
-    programs[0]->setUniformValue(m_flat_diffuse, border_color);
-
-    for(int i = 0; i < mesh->sub_meshes.size(); i++)
+    switch (shader)
     {
-        SubMesh* sub = mesh->sub_meshes[i];
+    case DEFAULT:
+    {
+        programs[0]->setUniformValue(d_projMatrixLoc, cam.m_proj);
+        programs[0]->setUniformValue(d_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
+        programs[0]->setUniformValue(d_normalMatrixLoc, m_world.normalMatrix());
+        programs[0]->setUniformValue(d_lightPosLoc, lightPos);
+        programs[0]->setUniformValue(d_lightIntensityLoc, lightColor);
+        programs[0]->setUniformValue(d_modeLoc, mode);
+        programs[0]->setUniformValue(d_flat_diffuse, border_color);
 
-        if(sub->vao.isCreated())
+        for(int i = 0; i < mesh->sub_meshes.size(); i++)
         {
-            for (int i = 0; i < sub->textures.size(); i++)
+            SubMesh* sub = mesh->sub_meshes[i];
+
+            if(sub->vao.isCreated())
             {
-                if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
-                    sub->textures[i].glTexture->bind();
-            }
+                for (int i = 0; i < sub->textures.size(); i++)
+                    if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
+                        sub->textures[i].glTexture->bind();
 
-            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
+                QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
+                if(sub->num_faces > 0) glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
+                else glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
 
-            if(sub->num_faces > 0)
-                glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
-            else
-                glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
-
-            for (int i = 0; i < sub->textures.count(); i++)
-            {
-                if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
-                    sub->textures[i].glTexture->release();
+                for (int i = 0; i < sub->textures.count(); i++)
+                    if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
+                        sub->textures[i].glTexture->release();
             }
         }
+        break;
+    }
+    /*case SINGLE_COLOR:
+    {
+        program->setUniformValue(sc_proj, cam.m_proj);
+        program->setUniformValue(sc_modelView, cam.transform->GetWorldMatrix().inverted() * m_world);
+        program->setUniformValue(sc_color, m_world.normalMatrix());
+
+        for(int i = 0; i < mesh->sub_meshes.size(); i++)
+        {
+            SubMesh* sub = mesh->sub_meshes[i];
+
+            if(sub->vao.isCreated())
+            {
+                QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
+                if(sub->num_faces > 0) glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
+                else glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
+            }
+        }
+        break;
+    }*/
+    default: break;
     }
 
     programs[0]->release();
 }
 
-void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
+void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
 {
     if (mesh == nullptr || mesh->num_vertices <= 0)
         return;
@@ -295,8 +353,6 @@ void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
         mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
 
     }
-
-    mesh->f = QOpenGLContext::currentContext()->functions();
 }
 
 void MyOpenGLWidget::resizeGL(int width, int height)
@@ -353,7 +409,7 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-void MyOpenGLWidget::DrawBorderedMesh(Mesh *mesh)
+/*void MyOpenGLWidget::DrawBorderedMesh(Mesh *mesh)
 {
     mesh->draw_border = false;
     DrawMesh(mesh);
@@ -373,8 +429,6 @@ void MyOpenGLWidget::DrawBorder(Mesh *mesh)
     programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
     programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
 
-    programs[0]->setUniformValue(m_lightPosLoc, lightPos);
-    programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
     programs[0]->setUniformValue(m_modeLoc, -1.0f);
     programs[0]->setUniformValue(m_flat_diffuse, border_color);
 
@@ -395,7 +449,7 @@ void MyOpenGLWidget::DrawBorder(Mesh *mesh)
 
     programs[0]->release();
 }
-
+*/
 
 
 
