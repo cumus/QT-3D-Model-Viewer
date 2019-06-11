@@ -13,50 +13,10 @@
 #include <QOpenGLFunctions>
 #include <iostream>
 
-static const char *vertexShaderSource =
-    "attribute vec4 vertex;\n"
-    "attribute vec3 normal;\n"
-    "attribute mediump vec4 texCoord;\n"
-    "varying vec3 vert;\n"
-    "varying vec3 vertNormal;\n"
-    "varying mediump vec4 texc;\n"
-    "uniform mat4 projMatrix;\n"
-    "uniform mat4 mvMatrix;\n"
-    "uniform mat3 normalMatrix;\n"
-    "void main() {\n"
-    "   texc = texCoord;\n"
-    "   vert = vertex.xyz;\n"
-    "   vertNormal = normalMatrix * normal;\n"
-    "   gl_Position = projMatrix * mvMatrix * vertex;\n"
-    "}\n";
-
-static const char *fragmentShaderSource =
-    "varying highp vec3 vert;\n"
-    "varying highp vec3 vertNormal;\n"
-    "varying mediump vec4 texc;\n"
-    "uniform highp vec3 lightPos;\n"
-    "uniform highp vec3 light_intensity;\n"
-    "uniform float mode;\n"
-    "uniform sampler2D texture;\n"
-    "void main() {\n"
-    "   highp vec3 L = normalize(lightPos - vert);\n"
-    "   highp vec3 NL = texture2D(texture, texc.st) * dot(L,vertNormal) * light_intensity;\n"
-
-    "   if (mode == 0)\n"
-    "       gl_FragColor = texture2D(texture, texc.st);\n"
-    "   else if (mode == 1)\n"
-    "       gl_FragColor = vec4(vertNormal, 1.0);\n"
-    "   else if (mode == 2)\n"
-    "       gl_FragColor = vec4(vert, 1.0);\n"
-    "   else\n"
-    "       gl_FragColor = vec4(normalize(NL), 1.0);\n"
-    "}\n";
-
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), tick_count(0)
 {
     setFocusPolicy(Qt::ClickFocus);
-    setMinimumSize(QSize(256, 256));
 
     cam.transform = new Transform(nullptr, true, {0,0,5},{0,0,0});
     lightPos = {0,0,2};
@@ -117,29 +77,36 @@ void MyOpenGLWidget::initializeGL()
     base.TypeLight = 0;
     lights.push_back(base);
 
-    // Model shader
+    // Default shader
     programs.push_back(new QOpenGLShaderProgram);
-    programs[0]->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    programs[0]->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+    if (!programs[0]->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/default.vert"))
+        qDebug() << "Error loading deault.vert shader";
+    if (!programs[0]->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/default.frag"))
+        qDebug() << "Error loading deault.frag shader";
+
     programs[0]->bindAttributeLocation("vertex", 0);
     programs[0]->bindAttributeLocation("normal", 1);
     programs[0]->bindAttributeLocation("texCoord", 2);
-    programs[0]->link();
+    programs[0]->bindAttributeLocation("tangent", 3);
+    programs[0]->bindAttributeLocation("bitangent", 4);
 
-    programs[0]->bind();
+    if (!programs[0]->link())
+        qDebug() << "Error Linking Default Shader";
+    if (!programs[0]->bind())
+        qDebug() << "Error Binding Default Shader";
 
     cam.m_projMatrixLoc =   programs[0]->uniformLocation("projMatrix");
     m_mvMatrixLoc =         programs[0]->uniformLocation("mvMatrix");
     m_normalMatrixLoc =     programs[0]->uniformLocation("normalMatrix");
     m_lightPosLoc =         programs[0]->uniformLocation("lightPos");
     m_lightIntensityLoc =   programs[0]->uniformLocation("light_intensity");
+    m_modeLoc =             programs[0]->uniformLocation("mode");
     m_textureLoc =          programs[0]->uniformLocation("texture");
-    m_modeLoc =          programs[0]->uniformLocation("mode");
 
     programs[0]->release();
 
 
-    // Shaders
+    /*/ Shaders
     programs.push_back(new QOpenGLShaderProgram);
     programs[1]->create();
     programs[1]->addShaderFromSourceFile(QOpenGLShader::Vertex, "graphic_buffer.vert");
@@ -156,7 +123,7 @@ void MyOpenGLWidget::initializeGL()
     programs[3]->create();
     programs[3]->addShaderFromSourceFile(QOpenGLShader::Vertex, "deferred_light.vert");
     programs[3]->addShaderFromSourceFile(QOpenGLShader::Fragment, "deferred_light.frag");
-    programs[3]->link();
+    programs[3]->link();*/
 
     scene->InitDemo(this);
 }
@@ -222,12 +189,12 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
         }
     }
 
-    programs[1]->release();
+    programs[0]->release();
 }
 
 void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
 {
-    if (mesh == nullptr || mesh->num_vertices <= 0 || mesh->num_faces <= 0)
+    if (mesh == nullptr || mesh->num_vertices <= 0)
         return;
 
     mesh->vao.create();
@@ -260,11 +227,32 @@ void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
     programs[0]->enableAttributeArray(2);
     programs[0]->setAttributeBuffer(2, GL_FLOAT, 0, 2);
 
+    // Setup our TANGENTS & BITANGENTS
+    mesh->tnbo.create();
+    mesh->tnbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
+    mesh->tnbo.bind();
+    mesh->tnbo.allocate(mesh->tangent_data.constData(), 3 * mesh->num_vertices * static_cast<int>(sizeof(GLfloat)));
+
+    programs[0]->enableAttributeArray(3);
+    programs[0]->setAttributeBuffer(3, GL_FLOAT, 0, 3);
+
+    mesh->btnbo.create();
+    mesh->btnbo.setUsagePattern( QOpenGLBuffer::StaticDraw );
+    mesh->btnbo.bind();
+    mesh->btnbo.allocate(mesh->bitangent_data.constData(), 3 * mesh->num_vertices * static_cast<int>(sizeof(GLfloat)));
+
+    programs[0]->enableAttributeArray(4);
+    programs[0]->setAttributeBuffer(4, GL_FLOAT, 0, 3);
+
     // Setup INDEXES
-    mesh->ibo.create();
-    mesh->ibo.setUsagePattern( QOpenGLBuffer::StaticDraw );
-    mesh->ibo.bind();
-    mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
+    if (mesh->num_faces > 0)
+    {
+        mesh->ibo.create();
+        mesh->ibo.setUsagePattern( QOpenGLBuffer::StaticDraw );
+        mesh->ibo.bind();
+        mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
+
+    }
 
     mesh->f = QOpenGLContext::currentContext()->functions();
 }
@@ -272,10 +260,10 @@ void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
 void MyOpenGLWidget::resizeGL(int width, int height)
 {
     cam.m_proj.setToIdentity();
-    cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 100.0f);
+    cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 1000.0f);
 
-    DeleteBuffers();
-    Resize(this->width = width, this->height = height);
+    //DeleteBuffers();
+    //Resize(this->width = width, this->height = height);
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
@@ -395,7 +383,7 @@ void MyOpenGLWidget::DeleteBuffers()
     glDeleteFramebuffers(1, &finalBloomfbo);*/
 }
 
-void MyOpenGLWidget::Resize(int width,int height)
+void MyOpenGLWidget::ResizeS(int width,int height)
 {
     // Frame Buffer
     glGenFramebuffers(1, &gBuffer);

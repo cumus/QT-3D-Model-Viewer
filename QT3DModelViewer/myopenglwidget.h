@@ -104,7 +104,7 @@ public:
 
     void InitDeferredRenderer();
     void DeleteBuffers();
-    void Resize(int width,int height);
+    void ResizeS(int width,int height);
 
     void Render();
     void RenderQuad();

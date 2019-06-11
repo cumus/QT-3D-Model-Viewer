@@ -36,6 +36,8 @@ public:
     vbo(QOpenGLBuffer::VertexBuffer),
     nbo(QOpenGLBuffer::VertexBuffer),
     tbo(QOpenGLBuffer::VertexBuffer),
+    tnbo(QOpenGLBuffer::VertexBuffer),
+    btnbo(QOpenGLBuffer::VertexBuffer),
     ibo(QOpenGLBuffer::IndexBuffer){}
 
     int num_vertices = 0;
@@ -47,14 +49,17 @@ public:
     QVector<GLfloat> vertex_data;
     QVector<GLfloat> normal_data;
     QVector<GLfloat> texcoord_data;
+    QVector<GLfloat> tangent_data;
+    QVector<GLfloat> bitangent_data;
     QVector<GLuint> index_data;
 
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;
     QOpenGLBuffer nbo;
     QOpenGLBuffer tbo;
+    QOpenGLBuffer tnbo;
+    QOpenGLBuffer btnbo;
     QOpenGLBuffer ibo;
-    QOpenGLBuffer bbo;
 
     QOpenGLFunctions *f = nullptr;
     QVector<Texture> textures;

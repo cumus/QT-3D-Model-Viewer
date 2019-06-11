@@ -116,6 +116,16 @@ DISTFILES += \
     Resources/icons/Document-new.png \
     Resources/icons/Folder.png \
     Resources/icons/Info.png \
+    Shaders/default.frag \
+    Shaders/default.vert \
+    Shaders/deferred_light.frag \
+    Shaders/deferred_light.vert \
+    Shaders/deferred_shading.frag \
+    Shaders/deferred_shading.vert \
+    Shaders/graphic_buffer.frag \
+    Shaders/graphic_buffer.vert \
+    default.frag \
+    default.vert \
     deferred_light.frag \
     deferred_light.vert \
     deferred_shading.frag \

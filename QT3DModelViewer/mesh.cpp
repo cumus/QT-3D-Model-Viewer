@@ -51,6 +51,7 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 
     const aiScene *scene = import.ReadFile(
                     path.toStdString(),
+                    aiProcess_CalcTangentSpace |
                     aiProcess_Triangulate |
                     aiProcess_GenSmoothNormals |
                     aiProcess_FixInfacingNormals |
@@ -150,6 +151,16 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
             vertex.Bitangent.setY(aimesh->mBitangents[i].y);
             vertex.Bitangent.setZ(aimesh->mBitangents[i].z);
         }
+        else
+        {
+            vertex.Tangent.setX(1);
+            vertex.Tangent.setY(0);
+            vertex.Tangent.setZ(0);
+
+            vertex.Bitangent.setX(0);
+            vertex.Bitangent.setY(1);
+            vertex.Bitangent.setZ(0);
+        }
 
         sub_mesh->vertices.push_back(vertex);
     }
@@ -158,6 +169,8 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
     sub_mesh->vertex_data.resize(sub_mesh->num_vertices * 3);
     sub_mesh->normal_data.resize(sub_mesh->num_vertices * 3);
     sub_mesh->texcoord_data.resize(sub_mesh->num_vertices * 2);
+    sub_mesh->tangent_data.resize(sub_mesh->num_vertices * 3);
+    sub_mesh->bitangent_data.resize(sub_mesh->num_vertices * 3);
 
     for (int i = 0; i < sub_mesh->num_vertices; i++)
     {
@@ -174,6 +187,16 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
         float_p = sub_mesh->texcoord_data.data() + (2 * i);
         *float_p++ = sub_mesh->vertices[i].TexCoords.x();
         *float_p++ = sub_mesh->vertices[i].TexCoords.y();
+
+        float_p = sub_mesh->tangent_data.data() + (3 * i);
+        *float_p++ = sub_mesh->vertices[i].Tangent.x();
+        *float_p++ = sub_mesh->vertices[i].Tangent.y();
+        *float_p++ = sub_mesh->vertices[i].Tangent.z();
+
+        float_p = sub_mesh->bitangent_data.data() + (3 * i);
+        *float_p++ = sub_mesh->vertices[i].Bitangent.x();
+        *float_p++ = sub_mesh->vertices[i].Bitangent.y();
+        *float_p++ = sub_mesh->vertices[i].Bitangent.z();
     }
 
     //Process each MESH FACE, 3 INDEX each
@@ -189,6 +212,7 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
         *int_p++ = static_cast<GLuint>(face.mIndices[2]);
     }
 
+    //Proces MATERIALS
     if(aimesh->mMaterialIndex > 0)
     {
         aiMaterial *material = scene->mMaterials[aimesh->mMaterialIndex];
@@ -199,50 +223,6 @@ SubMesh* Mesh::processMesh(aiMesh *aimesh, const aiScene *scene, MyOpenGLWidget*
         QVector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         sub_mesh->textures << specularMaps;
     }
-
-    //Proces MATERIALS
-    /*if(scene->HasMaterials())
-    {
-        aiString path;
-        aiMaterial* mat = scene->mMaterials[aimesh->mMaterialIndex];
-
-        if(aiReturn_SUCCESS == aiGetMaterialTexture(mat, aiTextureType_DIFFUSE, 0, &path))
-        {
-            QString file = directory;
-            file += path.C_Str();
-            qDebug() << path.C_Str();
-
-            QImage image(file);
-            if (!image.isNull())
-                sub_mesh->texture = new QOpenGLTexture(image);
-        }
-        else
-        {
-            qDebug() << "ERROR::ASSIMP:: could not load material " << aimesh->mMaterialIndex;
-
-            QString folder = "/";
-            for (int i = directory.length() - 2; i > 0; i--)
-            {
-                if(directory[i] != "/") folder = directory[i] + folder;
-                else break;
-            }
-
-            // hardcoded loading textures
-            if (folder == "Patrick/")
-            {
-                switch (aimesh->mMaterialIndex)
-                {
-                case 1: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // brows
-                case 2: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // eyes
-                case 3: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // pupils
-                case 4: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Flowers.png")); break; // pants
-                case 5: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Skin_Patrick.png")); break; //body
-                case 6: sub_mesh->texture = new QOpenGLTexture(QImage(directory + "Color.png")); break; // mouth
-                default: break;
-                }
-            }
-        }
-    }*/
 
     qDebug() << " - Mesh Loading: " << aimesh->mName.C_Str() << " with " << sub_mesh->vertices.count()<< " vertices";
 
