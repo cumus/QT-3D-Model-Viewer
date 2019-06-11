@@ -12,6 +12,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
+#include <QQueue>
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
 class Scene;
@@ -21,6 +22,15 @@ class Transform;
 class QTimer;
 class QOpenGLTexture;
 class SubMesh;
+
+enum SHADER_TYPE : int
+{
+    DEFAULT,
+    SINGLE_COLOR,
+    GRAPHIC_BUFFER,
+    DEFERRED_LIGHT,
+    DEFERRED_SHADING
+};
 
 struct Camera
 {
@@ -63,9 +73,32 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
+private:
+
+    void DrawBorderedMesh(Mesh* mesh = nullptr);
+    void DrawBorder(Mesh* mesh = nullptr);
+
 public:
 
     Scene* scene = nullptr;
+
+    // Camera
+    Camera cam;
+    QPointF mouse_pos;
+    bool cam_dir[6];
+
+    // Light
+    QList<Light> lights;
+    QVector3D lightPos;
+    QVector3D lightColor;
+
+    // Stencil Border
+    float border_scale = 1.1f;
+    QVector3D border_color;
+
+    // Shaders
+    QVector<QOpenGLShaderProgram*> programs;
+    float mode = 0;
 
 private:
 
@@ -74,18 +107,8 @@ private:
     int tick_count = 0;
     float tick_period = 3.0f;
 
+    // Context dimensions
     int width, height;
-
-    // Camera
-    Camera cam;
-    QPointF mouse_pos;
-    bool cam_dir[6];
-
-    QVector3D lightPos;
-    QVector3D lightColor;
-
-    // Shaders
-    QVector<QOpenGLShaderProgram*> programs;
 
     // Shader uniforms
     int m_mvMatrixLoc;
@@ -94,11 +117,11 @@ private:
     int m_lightIntensityLoc;
     int m_textureLoc;
     int m_modeLoc;
+    int m_flat_diffuse;
 
-    float mode = 0;
+    // Border stack vector
+    QQueue<Mesh*> border_meshes;
 
-    // Lights
-    QList<Light> lights;
 
 public:
 

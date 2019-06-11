@@ -23,6 +23,8 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     lightColor = {1, 1, 1};
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
 
+    border_color = QVector3D(1,0.27f,0);
+
     // Tick Widget
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MyOpenGLWidget::Tick);
@@ -101,6 +103,7 @@ void MyOpenGLWidget::initializeGL()
     m_lightPosLoc =         programs[0]->uniformLocation("lightPos");
     m_lightIntensityLoc =   programs[0]->uniformLocation("light_intensity");
     m_modeLoc =             programs[0]->uniformLocation("mode");
+    m_flat_diffuse =        programs[0]->uniformLocation("flat_diffuse");
     m_textureLoc =          programs[0]->uniformLocation("texture");
 
     programs[0]->release();
@@ -125,6 +128,18 @@ void MyOpenGLWidget::initializeGL()
     programs[3]->addShaderFromSourceFile(QOpenGLShader::Fragment, "deferred_light.frag");
     programs[3]->link();*/
 
+    // Enable depth buffer
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    // Enable back face culling
+    glEnable(GL_CULL_FACE);
+
+    // Enable stencil
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
     scene->InitDemo(this);
 }
 
@@ -132,20 +147,49 @@ void MyOpenGLWidget::paintGL()
 {
     // RESET
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT| GL_STENCIL_BUFFER_BIT);
 
-    glEnable(GL_DEPTH_TEST); // Enable depth buffer
-    glEnable(GL_CULL_FACE); // Enable back face culling
+    glStencilMask(0x00);
 
     //Render();
     if (scene != nullptr)
         scene->Draw(this);
+
+    if (!border_meshes.isEmpty())
+    {
+        // Draw mesh and write to stencil
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+
+        for (int i = 0; i < 1; i++)
+            DrawBorderedMesh(border_meshes[i]);
+
+        // Draw border from stencil
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+        for (int i = 0; i < 1; i++)
+            DrawBorder(border_meshes[i]);
+
+        glStencilMask(0xFF);
+        glEnable(GL_DEPTH_TEST);
+
+        border_meshes.clear();
+    }
 }
 
 void MyOpenGLWidget::DrawMesh(Mesh* mesh)
 {
-    if (mesh == nullptr)// || !mesh->vao.isCreated())
+    if (mesh == nullptr)
+    {
         return;
+    }
+    else if (mesh->draw_border)
+    {
+        border_meshes.push_back(mesh);
+        return;
+    }
 
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
     m_world.rotate(180.f, {0,0,1});
@@ -154,9 +198,11 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
     programs[0]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
     programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
     programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
+
     programs[0]->setUniformValue(m_lightPosLoc, lightPos);
     programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
     programs[0]->setUniformValue(m_modeLoc, mode);
+    programs[0]->setUniformValue(m_flat_diffuse, border_color);
 
     for(int i = 0; i < mesh->sub_meshes.size(); i++)
     {
@@ -167,9 +213,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
             for (int i = 0; i < sub->textures.size(); i++)
             {
                 if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
-                {
                     sub->textures[i].glTexture->bind();
-                }
             }
 
             QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
@@ -182,9 +226,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh)
             for (int i = 0; i < sub->textures.count(); i++)
             {
                 if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
-                {
                     sub->textures[i].glTexture->release();
-                }
             }
         }
     }
@@ -260,7 +302,7 @@ void MyOpenGLWidget::LoadMesh(SubMesh *mesh)
 void MyOpenGLWidget::resizeGL(int width, int height)
 {
     cam.m_proj.setToIdentity();
-    cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 1000.0f);
+    cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.1f, 100.0f);
 
     //DeleteBuffers();
     //Resize(this->width = width, this->height = height);
@@ -292,7 +334,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space: cam_dir[4] = true; break;
     case Qt::Key_E: cam_dir[5] = true; break;
     case Qt::Key_F: lightPos = cam.transform->GetPos(); break;
-    case Qt::Key_X: mode = mode+1.f>3.f?0:mode+1; break;
+    case Qt::Key_X: mode = mode+1.f>7.f?0:mode+1; break;
     default: break;
     }
 }
@@ -309,6 +351,49 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_E: cam_dir[5] = false; break;
     default: break;
     }
+}
+
+void MyOpenGLWidget::DrawBorderedMesh(Mesh *mesh)
+{
+    mesh->draw_border = false;
+    DrawMesh(mesh);
+    mesh->draw_border = true;
+}
+
+void MyOpenGLWidget::DrawBorder(Mesh *mesh)
+{
+    if (mesh == nullptr) return;
+
+    QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
+    m_world.rotate(180.f, {0,0,1});
+    m_world.scale(border_scale);
+
+    programs[0]->bind();
+    programs[0]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
+    programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
+    programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
+
+    programs[0]->setUniformValue(m_lightPosLoc, lightPos);
+    programs[0]->setUniformValue(m_lightIntensityLoc, lightColor);
+    programs[0]->setUniformValue(m_modeLoc, -1.0f);
+    programs[0]->setUniformValue(m_flat_diffuse, border_color);
+
+    for(int i = 0; i < mesh->sub_meshes.size(); i++)
+    {
+        SubMesh* sub = mesh->sub_meshes[i];
+
+        if(sub->vao.isCreated())
+        {
+            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
+
+            if(sub->num_faces > 0)
+                glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
+            else
+                glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
+        }
+    }
+
+    programs[0]->release();
 }
 
 

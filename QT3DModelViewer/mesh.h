@@ -90,6 +90,7 @@ public:
 
     QVector<SubMesh*> sub_meshes;
     QVector<Texture> texturesLoaded;
+    bool draw_border = false;
 
 private:
 

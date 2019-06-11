@@ -21,12 +21,20 @@ Scene::~Scene()
 
 Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
 {
-    goPatrick = AddGameObject("Patrick");
-    Mesh* mesh = new Mesh(goPatrick);
-
     qDebug() << "HERE" << qApp->applicationDirPath();
 
+    goPatrick = AddGameObject("Patrick");
+    goPatrick->transform->SetPos({-1,0,0});
+    Mesh* mesh = new Mesh(goPatrick);
     mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
+    mesh->draw_border = true;
+
+    /*GameObject* p2 = AddGameObject("Patrick 2");
+    p2->transform->SetPos({1,0,0});
+    Mesh* mesh2 = new Mesh(p2);
+    mesh2->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
+    //mesh2->draw_border = true;*/
+
     return nullptr;
 }
 
