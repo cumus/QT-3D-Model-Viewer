@@ -209,9 +209,9 @@ QMatrix4x4 Transform::GetWorldMatrix()
         world_m.rotate(local_qrot);
         world_m.scale(local_scale);
 
-        world_left = world_m.column(0).toVector3D().normalized();
+        world_left = -world_m.column(0).toVector3D().normalized();
         world_up = world_m.column(1).toVector3D().normalized();
-        world_forward = world_m.column(2).toVector3D().normalized();
+        world_forward = -world_m.column(2).toVector3D().normalized();
 
         isUpdated = true;
     }

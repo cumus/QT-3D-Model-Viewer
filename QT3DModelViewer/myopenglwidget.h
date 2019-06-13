@@ -9,10 +9,14 @@
 #include <QPoint>
 #include <QVector3D>
 #include <QOpenGLFunctions_3_3_Core>
-#include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
+#include <QWindow>
+
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
+QT_FORWARD_DECLARE_CLASS(QOpenGLContext)
+QT_FORWARD_DECLARE_CLASS(QOpenGLFramebufferObject)
+QT_FORWARD_DECLARE_CLASS(QOffscreenSurface)
 
 class Scene;
 class Resources;
@@ -26,6 +30,7 @@ enum SHADER_TYPE : int
 {
     DEFAULT = 0,
     SINGLE_COLOR,
+    FRAMEBUFFER_TO_SCREEN,
     GRAPHIC_BUFFER,
     DEFERRED_LIGHT,
     DEFERRED_SHADING
@@ -34,9 +39,11 @@ enum SHADER_TYPE : int
 enum RENDER_STATE : int
 {
     INITIALIZING,
-    RENDERING_MODELS,
-    DRAWING_BORDERED,
-    DRAWING_BORDERS,
+    INITIALIZED,
+    MODELS,
+    BORDERED_MODELS,
+    BORDERS,
+    POST_PROCESSING,
     FINISHED
 };
 
@@ -80,23 +87,28 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
+private:
+
+    void RenderQuad();
+
 public:
 
     Scene* scene = nullptr;
 
-    // Camera
     Camera cam;
-    QPointF mouse_pos;
-    bool cam_dir[6];
 
     // Light
     QList<Light> lights;
     QVector3D lightPos;
     QVector3D lightColor;
 
+    // Deferred Rendering
+    bool use_deferred = false;
+
     // Stencil Border
     float border_scale = 1.1f;
     QVector3D border_color;
+    float border_alpha = 0.8f;
     bool border_over_borderless = true; // border depth test
 
     // Shaders
@@ -106,6 +118,10 @@ public:
 private:
 
     RENDER_STATE state;
+
+    // Camera
+    QPointF mouse_pos;
+    bool cam_dir[6];
 
     // Time control
     QTimer *timer = nullptr;
@@ -129,26 +145,18 @@ private:
     int sc_modelView;
     int sc_proj;
     int sc_color;
+    int sc_alpha;
+    // Framebuffer to screen
+    int fs_screenTexture;
+
+    // Framebuffer
+
+    unsigned int fbo;
+    unsigned int textureColorbuffer;
+    unsigned int rbo;
 
     // Border stack vector
     QVector<Mesh*> border_meshes;
-
-
-public:
-
-    void InitDeferredRenderer();
-    void DeleteBuffers();
-    void ResizeS(int width,int height);
-
-    void Render();
-    void RenderQuad();
-
-    int renderView = 0;
-    unsigned int gBuffer; //fbo
-    unsigned int gPosition, gNormal, gAlbedoSpec;
-    unsigned int rboDepth; //rbo
-
-    unsigned int attachments[3];
 
     unsigned int quadVAO = 0;
     unsigned int quadVBO;

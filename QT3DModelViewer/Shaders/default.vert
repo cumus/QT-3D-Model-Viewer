@@ -25,5 +25,5 @@ void main()
     bitn = bitangent;
     tn = tangent;
 
-   gl_Position = projMatrix * mvMatrix * vertex;
+    gl_Position = projMatrix * mvMatrix * vertex;
 }

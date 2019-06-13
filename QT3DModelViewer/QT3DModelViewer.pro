@@ -122,6 +122,10 @@ DISTFILES += \
     Shaders/deferred_light.vert \
     Shaders/deferred_shading.frag \
     Shaders/deferred_shading.vert \
+    Shaders/framebuffertoscreen.frag \
+    Shaders/framebuffertoscreen.fsh \
+    Shaders/framebuffertoscreen.vert \
+    Shaders/framebuffertoscreen.vsh \
     Shaders/graphic_buffer.frag \
     Shaders/graphic_buffer.vert \
     Shaders/singlecolor.frag \

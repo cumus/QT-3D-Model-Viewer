@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
+#include <QOpenGLFramebufferObject>
 #include <iostream>
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -25,6 +26,10 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
 
     border_color = QVector3D(1,0.27f,0);
     border_meshes.clear();
+
+    QSize size = sizeHint();
+    width = size.width();
+    height = size.height();
 
     // Tick Widget
     timer = new QTimer(this);
@@ -57,10 +62,10 @@ void MyOpenGLWidget::Tick()
 {
     tick_count += tick_period;
 
-    if (cam_dir[0]) cam.transform->TranslateForward(-0.01f * tick_period);
-    if (cam_dir[1]) cam.transform->TranslateForward(0.01f * tick_period);
-    if (cam_dir[2]) cam.transform->TranslateLeft(-0.01f * tick_period);
-    if (cam_dir[3]) cam.transform->TranslateLeft(0.01f * tick_period);
+    if (cam_dir[0]) cam.transform->TranslateForward(0.01f * tick_period);
+    if (cam_dir[1]) cam.transform->TranslateForward(-0.01f * tick_period);
+    if (cam_dir[2]) cam.transform->TranslateLeft(0.01f * tick_period);
+    if (cam_dir[3]) cam.transform->TranslateLeft(-0.01f * tick_period);
     if (cam_dir[4]) cam.transform->TranslateUp(0.01f * tick_period);
     if (cam_dir[5]) cam.transform->TranslateUp(-0.01f * tick_period);
 
@@ -83,75 +88,81 @@ void MyOpenGLWidget::initializeGL()
 
     // Default shader
     QOpenGLShaderProgram* d_shader = new QOpenGLShaderProgram;
-    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/default.vert"))
-        qDebug() << "Error loading default.vert shader";
-    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/default.frag"))
-        qDebug() << "Error loading default.frag shader";
-
+    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/default.vert")) qDebug() << "Error loading default.vert shader";
+    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/default.frag")) qDebug() << "Error loading default.frag shader";
     d_shader->bindAttributeLocation("vertex", 0);
     d_shader->bindAttributeLocation("normal", 1);
     d_shader->bindAttributeLocation("texCoord", 2);
     d_shader->bindAttributeLocation("tangent", 3);
     d_shader->bindAttributeLocation("bitangent", 4);
-
-    if (!d_shader->link())
-        qDebug() << "Error Linking Default Shader";
-    if (!d_shader->bind())
-        qDebug() << "Error Binding Default Shader";
-
-    d_projMatrixLoc =       d_shader->uniformLocation("projMatrix");
-    d_mvMatrixLoc =         d_shader->uniformLocation("mvMatrix");
-    d_normalMatrixLoc =     d_shader->uniformLocation("normalMatrix");
-    d_lightPosLoc =         d_shader->uniformLocation("lightPos");
-    d_lightIntensityLoc =   d_shader->uniformLocation("light_intensity");
-    d_modeLoc =             d_shader->uniformLocation("mode");
-    d_flat_diffuse =        d_shader->uniformLocation("flat_diffuse");
-    d_textureLoc =          d_shader->uniformLocation("texture");
-
-    d_shader->release();
+    if (!d_shader->link()) qDebug() << "Error Linking Default Shader";
+    if (!d_shader->bind()) qDebug() << "Error Binding Default Shader";
+    d_projMatrixLoc = d_shader->uniformLocation("projMatrix");
+    d_mvMatrixLoc = d_shader->uniformLocation("mvMatrix");
+    d_normalMatrixLoc = d_shader->uniformLocation("normalMatrix");
+    d_lightPosLoc = d_shader->uniformLocation("lightPos");
+    d_lightIntensityLoc = d_shader->uniformLocation("light_intensity");
+    d_modeLoc = d_shader->uniformLocation("mode");
+    d_flat_diffuse = d_shader->uniformLocation("flat_diffuse");
+    d_textureLoc = d_shader->uniformLocation("texture");
     programs.push_back(d_shader);
+    d_shader->release();
 
     // Single Color shader
     QOpenGLShaderProgram* sc_shader = new QOpenGLShaderProgram();
-    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/singlecolor.vert"))
-        qDebug() << "Error loading singlecolor.vert shader";
-    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/singlecolor.frag"))
-        qDebug() << "Error loading singlecolor.frag shader";
-
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/singlecolor.vert")) qDebug() << "Error loading singlecolor.vert shader";
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/singlecolor.frag")) qDebug() << "Error loading singlecolor.frag shader";
     sc_shader->bindAttributeLocation("aPos", 0);
     sc_shader->bindAttributeLocation("texCoord", 1);
-
-    if (!sc_shader->link())
-        qDebug() << "Error Linking Default Shader";
-    if (!sc_shader->bind())
-        qDebug() << "Error Binding Default Shader";
-
+    if (!sc_shader->link()) qDebug() << "Error Linking Single Color Shader";
+    if (!sc_shader->bind()) qDebug() << "Error Binding Single Color Shader";
     sc_modelView = sc_shader->uniformLocation("modelview");
-    sc_proj =      sc_shader->uniformLocation("projection");
-    sc_color =     sc_shader->uniformLocation("flat_color");
-
+    sc_proj = sc_shader->uniformLocation("projection");
+    sc_color = sc_shader->uniformLocation("flat_color");
+    sc_alpha = sc_shader->uniformLocation("alpha");
     programs.push_back(sc_shader);
     sc_shader->release();
 
+    // Framebuffer to Screen shader
+    QOpenGLShaderProgram* fs_shader = new QOpenGLShaderProgram();
+    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/framebuffertoscreen.vert")) qDebug() << "Error loading singlecolor.vert shader";
+    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/framebuffertoscreen.frag")) qDebug() << "Error loading singlecolor.frag shader";
+    fs_shader->bindAttributeLocation("vertex", 0);
+    fs_shader->bindAttributeLocation("texCoord", 1);
+    if (!fs_shader->link()) qDebug() << "Error Linking Framebuffer to Screen Shader";
+    if (!fs_shader->bind()) qDebug() << "Error Binding Framebuffer to Screen Shader";
+    fs_screenTexture = fs_shader->uniformLocation("screenTexture");
+    fs_shader->setUniformValue(fs_screenTexture, 0);
+    programs.push_back(fs_shader);
+    fs_shader->release();
 
-    /*/ Shaders
-    programs.push_back(new QOpenGLShaderProgram);
-    programs[1]->create();
-    programs[1]->addShaderFromSourceFile(QOpenGLShader::Vertex, "graphic_buffer.vert");
-    programs[1]->addShaderFromSourceFile(QOpenGLShader::Fragment, "graphic_buffer.frag");
-    programs[1]->link();
+    // Framebuffer configuration
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    programs.push_back(new QOpenGLShaderProgram);
-    programs[2]->create();
-    programs[2]->addShaderFromSourceFile(QOpenGLShader::Vertex, "deferred_shading.vert");
-    programs[2]->addShaderFromSourceFile(QOpenGLShader::Fragment, "deferred_shading.frag");
-    programs[2]->link();
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-    programs.push_back(new QOpenGLShaderProgram);
-    programs[3]->create();
-    programs[3]->addShaderFromSourceFile(QOpenGLShader::Vertex, "deferred_light.vert");
-    programs[3]->addShaderFromSourceFile(QOpenGLShader::Fragment, "deferred_light.frag");
-    programs[3]->link();*/
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+
+    switch(glCheckFramebufferStatus(GL_FRAMEBUFFER)){
+    case GL_FRAMEBUFFER_COMPLETE: qInfo() << "Framebuffer Complete"; break; // Everything's OK
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: qInfo() << "Framebuffer ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: qInfo() << "Framebuffer ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: qInfo() << "Framebuffer ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: qInfo() << "Framebuffer ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
+    case GL_FRAMEBUFFER_UNSUPPORTED: qInfo() << "Framebuffer ERROR: GL_FRAMEBUFFER_UNSUPPORTED"; break;
+    default: qInfo() << "Framebuffer ERROR: Unknown ERROR"; }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Enable depth buffer
     glEnable(GL_DEPTH_TEST);
@@ -160,32 +171,43 @@ void MyOpenGLWidget::initializeGL()
     // Enable back face culling
     glEnable(GL_CULL_FACE);
 
+    // Enable transparency blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+
     // Enable stencil
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    state = INITIALIZED;
 
     scene->InitDemo(this);
 }
 
 void MyOpenGLWidget::paintGL()
 {
+    if (use_deferred)
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    else
+        QOpenGLFramebufferObject::bindDefault();
+
     // RESET
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT| GL_STENCIL_BUFFER_BIT);
-
+    glEnable(GL_DEPTH_TEST);
     glStencilMask(0x00);
 
-    state = RENDERING_MODELS;
+    state = MODELS;
     border_meshes.clear();
 
-    //Render();
     if (scene != nullptr)
         scene->Draw(this);
 
     if (!border_meshes.isEmpty())
     {
-        state = DRAWING_BORDERED;
+        state = BORDERED_MODELS;
 
         // Draw mesh and write to stencil
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -194,7 +216,7 @@ void MyOpenGLWidget::paintGL()
         for (int i = 0; i < border_meshes.count(); i++)
             DrawMesh(border_meshes[i]);
 
-        state = DRAWING_BORDERS;
+        state = BORDERS;
 
         // Draw border from stencil
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -212,6 +234,18 @@ void MyOpenGLWidget::paintGL()
         border_meshes.clear();
     }
 
+    state = POST_PROCESSING;
+
+    if (use_deferred)
+    {
+        QOpenGLFramebufferObject::bindDefault();
+        glDisable(GL_DEPTH_TEST);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        RenderQuad();
+    }
+
     state = FINISHED;
 }
 
@@ -219,7 +253,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
 {
     if (mesh == nullptr || shader >= programs.count())
         return;
-    else if (mesh->draw_border && state == RENDERING_MODELS)
+    else if (mesh->draw_border && state == MODELS)
     {
         border_meshes.push_back(mesh);
         return;
@@ -270,6 +304,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         program->setUniformValue(sc_proj, cam.m_proj);
         program->setUniformValue(sc_modelView, cam.transform->GetWorldMatrix().inverted() * m_world);
         program->setUniformValue(sc_color, border_color);
+        program->setUniformValue(sc_alpha, border_alpha);
 
         for(int i = 0; i < mesh->sub_meshes.size(); i++)
         {
@@ -295,7 +330,6 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
         return;
 
     programs[0]->bind();
-
     mesh->vao.create();
     QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
 
@@ -350,7 +384,6 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
         mesh->ibo.setUsagePattern( QOpenGLBuffer::StaticDraw );
         mesh->ibo.bind();
         mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
-
     }
 
     programs[0]->release();
@@ -361,8 +394,11 @@ void MyOpenGLWidget::resizeGL(int width, int height)
     cam.m_proj.setToIdentity();
     cam.m_proj.perspective(45.0f, GLfloat(width) / height, 0.1f, 100.0f);
 
-    //DeleteBuffers();
-    //Resize(this->width = width, this->height = height);
+    this->width = width;
+    this->height = height;
+
+    //DeleteFrameBuffers();
+    //CreateFrameBuffers(); with new target size
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
@@ -392,6 +428,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_E: cam_dir[5] = true; break;
     case Qt::Key_F: lightPos = cam.transform->GetPos(); break;
     case Qt::Key_X: mode = mode+1.f>7.f?0:mode+1; break;
+    case Qt::Key_G: use_deferred = !use_deferred; break;
     default: break;
     }
 }
@@ -410,107 +447,15 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-/*void MyOpenGLWidget::DrawBorderedMesh(Mesh *mesh)
-{
-    mesh->draw_border = false;
-    DrawMesh(mesh);
-    mesh->draw_border = true;
-}
-
-void MyOpenGLWidget::DrawBorder(Mesh *mesh)
-{
-    if (mesh == nullptr) return;
-
-    QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
-    m_world.rotate(180.f, {0,0,1});
-    m_world.scale(border_scale);
-
-    programs[0]->bind();
-    programs[0]->setUniformValue(cam.m_projMatrixLoc, cam.m_proj);
-    programs[0]->setUniformValue(m_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
-    programs[0]->setUniformValue(m_normalMatrixLoc, m_world.normalMatrix());
-
-    programs[0]->setUniformValue(m_modeLoc, -1.0f);
-    programs[0]->setUniformValue(m_flat_diffuse, border_color);
-
-    for(int i = 0; i < mesh->sub_meshes.size(); i++)
-    {
-        SubMesh* sub = mesh->sub_meshes[i];
-
-        if(sub->vao.isCreated())
-        {
-            QOpenGLVertexArrayObject::Binder vaoBinder(&sub->vao);
-
-            if(sub->num_faces > 0)
-                glDrawElements(GL_TRIANGLES, sub->num_faces * 3, GL_UNSIGNED_INT, nullptr);
-            else
-                glDrawArrays(GL_TRIANGLES, 0, sub->num_vertices);
-        }
-    }
-
-    programs[0]->release();
-}
-*/
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void MyOpenGLWidget::DeleteBuffers()
+/*void MyOpenGLWidget::DeleteBuffers()
 {
     glDeleteTextures(1, &gPosition);
     glDeleteTextures(1, &gNormal);
     glDeleteTextures(1, &gAlbedoSpec);
-    /*glDeleteTextures(1, &gDepth);
+    glDeleteTextures(1, &gDepth);
     glDeleteFramebuffers(1, &gBuffer);
 
     glDeleteTextures(1, &lighting);
@@ -520,7 +465,7 @@ void MyOpenGLWidget::DeleteBuffers()
     glDeleteTextures(1, &bloomfbo);
     glDeleteFramebuffers(1, &bloom);
     glDeleteTextures(1, &finalBloom);
-    glDeleteFramebuffers(1, &finalBloomfbo);*/
+    glDeleteFramebuffers(1, &finalBloomfbo);
 }
 
 void MyOpenGLWidget::ResizeS(int width,int height)
@@ -559,7 +504,7 @@ void MyOpenGLWidget::ResizeS(int width,int height)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-    /*/ Depth
+    // Depth
     GL->glGenTextures(1, &depthTexture);
     GL->glBindTexture(GL_TEXTURE_2D, depthTexture);
     GL->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -567,7 +512,7 @@ void MyOpenGLWidget::ResizeS(int width,int height)
     GL->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     GL->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     GL->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    */
+
 
     GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 , GL_COLOR_ATTACHMENT2};
     static_cast<QOpenGLFunctions_3_3_Core*>(this)->glDrawBuffers(3, buffers);
@@ -587,7 +532,7 @@ void MyOpenGLWidget::ResizeS(int width,int height)
         float bColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
         lightColor = {rColor, gColor, bColor};
     }
-/*
+
     glGenTextures(1, &lighting);
     glBindTexture(GL_TEXTURE_2D, lighting);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -595,14 +540,14 @@ void MyOpenGLWidget::ResizeS(int width,int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-*/
-    /*/ Frame Buffer
+
+    // Frame Buffer
     glGenFramebuffers(1, &lightingfbo);
     glBindFramebuffer(GL_FRAMEBUFFER, lightingfbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lighting, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-*/
-    /*
+
+
     GL->glGenTextures(1, &blurHV);
     GL->glBindTexture(GL_TEXTURE_2D, blurHV);
     GL->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -643,7 +588,7 @@ void MyOpenGLWidget::ResizeS(int width,int height)
     GL->glGenFramebuffers(1, &finalBloomfbo);
     GL->glBindFramebuffer(GL_FRAMEBUFFER, finalBloomfbo);
     GL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, finalBloom, 0);
-    GL->glDrawBuffer(GL_COLOR_ATTACHMENT0);*/
+    GL->glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -672,7 +617,7 @@ void MyOpenGLWidget::ResizeS(int width,int height)
 
 void MyOpenGLWidget::Render()
 {
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 1. geometry pass: render scene's geometry/color data into gbuffer
@@ -694,7 +639,7 @@ void MyOpenGLWidget::Render()
                                        GL_FALSE,
                                        go->transform->GetWorldMatrix().data());
 
-                glActiveTexture(GL_TEXTURE0);*//*
+                glActiveTexture(GL_TEXTURE0);
 
                 QVector<SubMesh*> submeshes = static_cast<Mesh*>(go->components[1])->sub_meshes;
 
@@ -782,7 +727,7 @@ void MyOpenGLWidget::Render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     programs[2]->setUniformValue("gPosition", 0);
-*/}
+}*/
 
 void MyOpenGLWidget::RenderQuad()
 {
@@ -806,7 +751,11 @@ void MyOpenGLWidget::RenderQuad()
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
+    programs[2]->bind();
     glBindVertexArray(quadVAO);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+    programs[2]->release();
 }
+
