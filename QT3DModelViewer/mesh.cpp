@@ -74,16 +74,23 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
         qDebug() << "ERROR::ASSIMP::" << import.GetErrorString() << endl;
         return;
     }
-
+    bool extension=true;
+    QString name;
     directory = path;
     for (int i = directory.length() - 1; i > 0; i--)
     {
-        if(directory[i] != "/") directory.remove(i,1);
+        if(directory[i] != "/")
+        {
+            if(!extension)name=directory[i]+name;
+            if(directory[i] == ".") extension=false;
+            directory.remove(i,1);
+        }
         else break;
     }
 
     qDebug() << "Mesh at;" << directory;
 
+    gameobject->name = name;
     processNode(scene->mRootNode, scene, renderer);
 
     //file.close();
@@ -237,8 +244,10 @@ QVector<Texture> Mesh::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
         bool skip = false;
         for(unsigned int j = 0; j < texturesLoaded.size(); j++)
         {
+            //qDebug() << texturesLoaded[j].path << "COMPARE" << str.C_Str();
             if(texturesLoaded[j].path.contains(str.C_Str()))
             {
+
                 textures.push_back(texturesLoaded[j]);
                 skip = true;
                 break;
@@ -248,7 +257,7 @@ QVector<Texture> Mesh::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
         {   // if texture hasn't been loaded already, load it
             Texture texture;
             texture.glTexture =  new QOpenGLTexture(QImage(directory + str.C_Str()));
-            //qDebug() << "NEW TEXTURE";
+            qDebug() << "NEW TEXTURE";
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);

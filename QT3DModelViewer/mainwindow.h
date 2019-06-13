@@ -45,17 +45,8 @@ private:
     Scene* scene= nullptr;
 
 public slots:
-    /*void openScene();
-    void saveScene();
-    void newScene();
+    void loadModel();
     void openReadme();
-
-    void changeSelectedGameObject();
-
-    void addEntityButtonClicked();
-    void removeEntityButtonClicked();
-
-    void changeBackGroundColor();*/
 
     void addChild(GameObject *node);
     void addNodeHierarchyTree();

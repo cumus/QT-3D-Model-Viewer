@@ -26,6 +26,8 @@ public:
     GameObject* root = nullptr;
     GameObject* goPatrick = nullptr;
     //Resources* resources = nullptr;
+    bool loadNewModel = false;
+    QString newModelPath;
 };
 
 #endif // SCENE_H

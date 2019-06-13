@@ -6,11 +6,12 @@
 
 #include <QtWidgets>
 #include <QtGui>
+#include <QFileDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
-    // uiHierarchy(new Ui::Hierarchy)
 {
     ui->setupUi(this);
 
@@ -19,49 +20,15 @@ MainWindow::MainWindow(QWidget *parent) :
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
     myOpenGLWidget->scene = scene = new Scene();
 
-    /*/ Hierarchy
-    QWidget *hierarchyWidget = new QWidget();
-    uiHierarchy->setupUi(hierarchyWidget);
-    hierarchyWidget->show();
-    ui->hierarchyDock->setWidget(hierarchyWidget);*/
-
-    /*/ Render Settings
-    QWidget *renderingWidget = new QWidget();
-    uiRendering->setupUi(renderingWidget);
-    //renderingWidget->show();
-    ui->renderDock->setWidget(renderingWidget);*/
-
-    /*inspector = new Inspector(this);
-    ui->inspectorDock->setWidget(inspector);*/
-
-    /*/QMainWindow::tabifyDockWidget(ui->inspectorDock,ui->renderDock);
-    //ui->inspectorDock->show();
-    inspector->show();*/
-
-    /*/ Scene
-    ui->openGLWidget->scene = scene = new Scene(this);
-    newScene();
-    setWindowTitle(scene->name);*/
-
-    /*QColor c = scene->background_color;
-    uiHierarchy->backGroundColorButton->setStyleSheet(QString("background-color: rgb(%1, %2, %3)").arg(c.red()).arg(c.green()).arg(c.blue()));*/
-
-    /*/Hierarchy Connexions
-    connect(uiHierarchy->addEntityButton, SIGNAL(clicked()), this, SLOT(addEntityButtonClicked()));
-    connect(uiHierarchy->removeEntityButton, SIGNAL(clicked()), this, SLOT(removeEntityButtonClicked()));
-
-    connect(uiHierarchy->listWidget, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)), this, SLOT(changeSelectedGemaObject()));*/
+    //HierarchyButtons
 
     connect(ui->loadMeshButton, SIGNAL(clicked()), this, SLOT(addNodeHierarchyTree()));
 
     //Menu Bar Connexions
-    /*connect(ui->actionNewScene, SIGNAL(triggered()), this, SLOT(newScene()));
-    connect(ui->actionOpenScene, SIGNAL(triggered()), this, SLOT(openScene()));
-    connect(ui->actionSaveScene, SIGNAL(triggered()), this, SLOT(saveScene()));
-    connect(ui->actionReadme, SIGNAL(triggered()), this, SLOT(openReadme()));*/
-    connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
-    //connect(uiHierarchy->backGroundColorButton, SIGNAL(clicked()), this, SLOT(changeBackGroundColor()));
+    connect(ui->actionLoadModel, SIGNAL(triggered()), this, SLOT(loadModel()));
+    connect(ui->actionReadme, SIGNAL(triggered()), this, SLOT(openReadme()));
+    connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
 MainWindow::~MainWindow()
@@ -70,6 +37,20 @@ MainWindow::~MainWindow()
     delete resources;
     delete scene;
     delete ui;
+}
+
+void MainWindow::loadModel()
+{
+    QString file = QFileDialog::getOpenFileName(this,"Select model to load", qApp->applicationDirPath(), "OBJ File (*.obj)");
+    qDebug() << file;
+
+    scene->newModelPath = file;
+    scene->loadNewModel = true;
+}
+
+void MainWindow::openReadme()
+{
+    QDesktopServices::openUrl(QUrl("https://github.com/cumus/QT-3D-Model-Viewer"));
 }
 
 void MainWindow::addChild(GameObject *node)

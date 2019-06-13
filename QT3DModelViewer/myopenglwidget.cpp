@@ -294,6 +294,8 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
     if (mesh == nullptr || mesh->num_vertices <= 0)
         return;
 
+    programs[0]->bind();
+
     mesh->vao.create();
     QOpenGLVertexArrayObject::Binder vaoBinder(&mesh->vao);
 
@@ -350,6 +352,8 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
         mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
 
     }
+
+    programs[0]->release();
 }
 
 void MyOpenGLWidget::resizeGL(int width, int height)

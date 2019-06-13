@@ -29,11 +29,8 @@ Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
     mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
     mesh->draw_border = true;
 
-    GameObject* p2 = AddGameObject("Patrick 2");
-    p2->transform->SetPos({3,0,2});
-    p2->transform->SetRotXYZ({0,-90,0});
-    Mesh* mesh2 = new Mesh(p2);
-    mesh2->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
+
+
     //mesh2->draw_border = true;
 
     return nullptr;
@@ -48,6 +45,16 @@ void Scene::Clear()
 void Scene::Draw(MyOpenGLWidget* renderer)
 {
     root->Draw(renderer);
+
+    if(loadNewModel)
+    {
+        GameObject* loadedModelGO = AddGameObject("NoName");
+        Mesh* loadedModelMESH = new Mesh(loadedModelGO);
+        loadedModelMESH->importModel(newModelPath, renderer);
+        //loadedModelMESH->draw_border = true;
+
+        loadNewModel = false;
+    }
 }
 
 GameObject *Scene::AddGameObject(QString name, GameObject *parent)
