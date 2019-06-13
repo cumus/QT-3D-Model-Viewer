@@ -12,6 +12,7 @@
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
 #include <QWindow>
+#include <QVector3D>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 QT_FORWARD_DECLARE_CLASS(QOpenGLContext)
@@ -32,8 +33,8 @@ enum SHADER_TYPE : int
     SINGLE_COLOR,
     FRAMEBUFFER_TO_SCREEN,
     GRAPHIC_BUFFER,
-    DEFERRED_LIGHT,
-    DEFERRED_SHADING
+    DEFERRED_SHADING,
+    DEFERRED_LIGHT
 };
 
 enum RENDER_STATE : int
@@ -90,6 +91,7 @@ protected:
 private:
 
     void RenderQuad();
+    void RenderCube();
 
 public:
 
@@ -140,7 +142,6 @@ private:
     int d_lightIntensityLoc;
     int d_textureLoc;
     int d_modeLoc;
-    int d_flat_diffuse;
     // Single Color
     int sc_modelView;
     int sc_proj;
@@ -148,18 +149,35 @@ private:
     int sc_alpha;
     // Framebuffer to screen
     int fs_screenTexture;
+    /*/ Graphic Buffer
+    int gb_model;
+    int gb_modelInv;
+    int gb_view;
+    int gb_projection;*/
+    // Deferred Shading
+    // Lightning Pass
+    int def_posLoc;
+    int def_normalLoc;
+    int def_albedospecLoc;
+
 
     // Framebuffer
-
     unsigned int fbo;
-    unsigned int textureColorbuffer;
-    unsigned int rbo;
+    //unsigned int textureColorbuffer;
+    unsigned int rboDepth;
 
     // Border stack vector
     QVector<Mesh*> border_meshes;
 
     unsigned int quadVAO = 0;
     unsigned int quadVBO;
+    unsigned int cubeVAO = 0;
+    unsigned int cubeVBO;
+    unsigned int gPosition, gNormal, gAlbedoSpec;
+
+    const unsigned int NR_LIGHTS = 32;
+    QVector<QVector3D> lightPositions;
+    QVector<QVector3D> lightColors;
 };
 
 #endif // MYOPENGLWIDGET_H

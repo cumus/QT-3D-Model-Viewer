@@ -1,15 +1,16 @@
-//
-attribute vec4 vertex;
-attribute vec3 normal;
-attribute mediump vec4 texCoord;
-attribute vec3 tangent;
-attribute vec3 bitangent;
+#version 330
 
-varying vec3 vert;
-varying vec3 vertNormal;
-varying mediump vec4 texc;
-varying vec3 bitn;
-varying vec3 tn;
+layout (location = 0) in vec4 vertex;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in mediump vec4 texCoord;
+layout (location = 3) in vec3 tangent;
+layout (location = 4) in vec3 bitangent;
+
+out vec3 vert;
+out vec3 vertNormal;
+out mediump vec4 texc;
+out vec3 bitn;
+out vec3 tn;
 
 uniform mat4 projMatrix;
 uniform mat4 mvMatrix;
@@ -17,11 +18,9 @@ uniform mat3 normalMatrix;
 
 void main()
 {
-    texc = texCoord;
     vert = vertex.xyz;
     vertNormal = normalMatrix * normal;
-
-
+    texc = texCoord;
     bitn = bitangent;
     tn = tangent;
 
