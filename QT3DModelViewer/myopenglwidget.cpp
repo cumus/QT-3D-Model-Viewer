@@ -244,9 +244,9 @@ void MyOpenGLWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 
     // Enable transparency blending
-    glEnable(GL_BLEND);
+    /*glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);*/
 
     // Enable stencil
     glEnable(GL_STENCIL_TEST);
@@ -313,9 +313,6 @@ void MyOpenGLWidget::paintGL()
     if (use_deferred)
     {
         QOpenGLFramebufferObject::bindDefault();
-        /*glDisable(GL_DEPTH_TEST);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);*/
 
         // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
         // -----------------------------------------------------------------------------------------------------------------------
@@ -330,20 +327,20 @@ void MyOpenGLWidget::paintGL()
 
         for (int i = 0; i < lightPositions.size(); i++)
         {
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString(i) + "].Position").toStdString().c_str(), lightPositions[i]);
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString(i) + "].Color").toStdString().c_str(), lightColors[i]);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Position").toStdString().c_str(), lightPositions[i]);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Color").toStdString().c_str(), lightColors[i]);
 
             // update attenuation parameters and calculate radius
             const float constant = 1.0f; // note that we don't send this to the shader, we assume it is always 1.0 (in our case)
             const float linear = 0.7f;
             const float quadratic = 1.8f;
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString(i) + "].Linear").toStdString().c_str(), linear);
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString(i) + "].Quadratic").toStdString().c_str(), quadratic);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Linear").toStdString().c_str(), linear);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Quadratic").toStdString().c_str(), quadratic);
 
             // then calculate radius of light volume/sphere
             const float maxBrightness = std::fmaxf(std::fmaxf(lightColors[i].x(), lightColors[i].y()), lightColors[i].z());
             float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString(i) + "].Radius").toStdString().c_str(), radius);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Radius").toStdString().c_str(), radius);
         }
 
         programs[DEFERRED_SHADING]->setUniformValue("viewPos", cam.transform->GetPos());
@@ -366,7 +363,7 @@ void MyOpenGLWidget::paintGL()
         {
             w.setToIdentity();
             w.translate(lightPositions[i]);
-            w.scale(0.125f);
+            w.scale(0.5f);
 
             programs[DEFERRED_LIGHT]->setUniformValue("mv", cam.transform->GetWorldMatrix().inverted() * w);
             programs[DEFERRED_LIGHT]->setUniformValue("lightColor", lightColors[i]);
@@ -388,7 +385,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         return;
     }
 
-    if (use_deferred) shader = GRAPHIC_BUFFER;
+    if (use_deferred && state == MODELS) shader = GRAPHIC_BUFFER;
 
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
     m_world.rotate(180.f, {0,0,1});
@@ -505,8 +502,6 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
                 for (int i = 0; i < sub->textures.count(); i++)
                     if(sub->textures[i].glTexture != nullptr && sub->textures[i].glTexture->isCreated())
                         sub->textures[i].glTexture->release();
-
-                glActiveTexture(GL_TEXTURE0);
             }
         }
         break;
@@ -579,7 +574,7 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
         mesh->ibo.allocate(mesh->index_data.constData(), 3 * mesh->num_faces * static_cast<int>(sizeof(GLint)));
     }
 
-    programs[0]->release();
+    programs[DEFAULT]->release();
 }
 
 void MyOpenGLWidget::resizeGL(int width, int height)
@@ -808,72 +803,6 @@ void MyOpenGLWidget::ResizeS(int width,int height)
 }
 
 
-void MyOpenGLWidget::Render()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // 1. geometry pass: render scene's geometry/color data into gbuffer
-    // -----------------------------------------------------------------------------------------------------------------------
-
-    if(programs[2]->bind())
-    {
-        glUniformMatrix4fv(programs[2]->uniformLocation("projectionMatrix"), 1, GL_FALSE, cam.m_proj.data());
-        foreach (GameObject* go, scene->root->childs)
-        {
-            if(go->components[1]->type == MESH)
-            {
-                /*glUniformMatrix4fv(programs[2]->uniformLocation("modelViewMatrix"),
-                                       1,
-                                       GL_FALSE,
-                                       (cam.transform->GetWorldMatrix() * go->transform->GetWorldMatrix()).data());
-                glUniformMatrix4fv(programs[2]->uniformLocation("modelWorldMatrix"),
-                                       1,
-                                       GL_FALSE,
-                                       go->transform->GetWorldMatrix().data());
-
-                glActiveTexture(GL_TEXTURE0);
-
-                QVector<SubMesh*> submeshes = static_cast<Mesh*>(go->components[1])->sub_meshes;
-
-                for(unsigned int i = 0; i < submeshes.size(); i++)
-                {
-                    // bind appropriate textures
-                    unsigned int diffuseNr  = 1;
-                    unsigned int specularNr = 1;
-                    unsigned int normalNr   = 1;
-                    unsigned int heightNr   = 1;
-
-                    glActiveTexture(GL_TEXTURE0 + submeshes[i]->texture->textureId()); // active proper texture unit before binding
-
-                    if(submeshes[i]->vao.isCreated())
-                    {
-                        bool release_texture = false;
-
-                        if(submeshes[i]->texture != nullptr && submeshes[i]->texture->isCreated())
-                        {
-                            //glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
-                            submeshes[i]->texture->bind();
-                            release_texture = true;
-                        }
-
-                        QOpenGLVertexArrayObject::Binder vaoBinder(&submeshes[i]->vao);
-
-                        if(submeshes[i]->num_faces > 0)
-                            glDrawElements(GL_TRIANGLES, submeshes[i]->num_faces * 3, GL_UNSIGNED_INT, nullptr);
-                        else
-                            glDrawArrays(GL_TRIANGLES, 0, submeshes[i]->num_vertices);
-
-                        if (release_texture)
-                            submeshes[i]->texture->release();
-
-                        // always good practice to set everything back to defaults once configured.
-                        glActiveTexture(GL_TEXTURE0);
-                    }
-                }
-            }
-        }
-    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -954,7 +883,7 @@ void MyOpenGLWidget::RenderCube()
 {
     if (cubeVAO == 0)
     {
-        float vertices[] = {
+        GLfloat vertices[] = {
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
              1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
@@ -1006,11 +935,11 @@ void MyOpenGLWidget::RenderCube()
         // link vertex attributes
         glBindVertexArray(cubeVAO);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
