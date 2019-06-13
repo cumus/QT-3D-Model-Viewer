@@ -91,6 +91,7 @@ HEADERS += \
         transform.h
 
 FORMS += \
+        inspector.ui \
         mainwindow.ui
 
 # Default rules for deployment.

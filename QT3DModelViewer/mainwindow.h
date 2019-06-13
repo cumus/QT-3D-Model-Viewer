@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <iostream>
 #include <QTreeWidget>
-
+#include "ui_inspector.h"
 #include "gameobject.h"
 
 class Resources;
@@ -12,11 +12,10 @@ class Scene;
 
 namespace Ui {
 class MainWindow;
-// class Hierarchy;
-// class Rendering;
+class Inspector;
 }
 
-// class Inspector;
+
 // class Scene;
 class MyOpenGLWidget;
 
@@ -28,16 +27,14 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+
+    void reloadHierarchy();
     
 protected:
 
 private:
     Ui::MainWindow *ui;
-    /*Ui::Hierarchy *uiHierarchy;
-    Ui::Rendering *uiRendering;
-    Inspector* inspector;
-
-    Scene* scene = nullptr;*/
+    Ui::Inspector *uiInspector;
 
     MyOpenGLWidget* myOpenGLWidget = nullptr;
 
@@ -47,9 +44,6 @@ private:
 public slots:
     void loadModel();
     void openReadme();
-
-    void addChild(GameObject *node);
-    void addNodeHierarchyTree();
 };
 
 #endif // MAINWINDOW_H

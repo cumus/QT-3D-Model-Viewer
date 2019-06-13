@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include "ui_mainwindow.h"
+#include "ui_inspector.h"
 #include "myopenglwidget.h"
 #include "scene.h"
 
@@ -11,7 +12,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    uiInspector(new Ui::Inspector)
 {
     ui->setupUi(this);
 
@@ -19,10 +21,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     myOpenGLWidget = new MyOpenGLWidget(ui->openGLWidget);
     myOpenGLWidget->scene = scene = new Scene();
+    myOpenGLWidget->scene->mainWindow = this;
 
-    //HierarchyButtons
+    //Inspector
 
-    connect(ui->loadMeshButton, SIGNAL(clicked()), this, SLOT(addNodeHierarchyTree()));
+    QWidget *inspectorWidget = new QWidget();
+    uiInspector->setupUi(inspectorWidget);
+    inspectorWidget->show();
+
+    ui->inspectorDock->setWidget(inspectorWidget);
 
     //Menu Bar Connexions
 
@@ -39,6 +46,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::reloadHierarchy()
+{
+    ui->hierarchy->clear();
+
+    for (int i = 0;i < scene->root->childs.size();i++)
+    {
+        QListWidgetItem *item = new QListWidgetItem(scene->root->childs[i]->name);
+        item->setData(Qt::UserRole,scene->root->childs[i]->id);
+        ui->hierarchy->addItem(item);
+    }
+}
+
 void MainWindow::loadModel()
 {
     QString file = QFileDialog::getOpenFileName(this,"Select model to load", qApp->applicationDirPath(), "OBJ File (*.obj)");
@@ -51,30 +70,5 @@ void MainWindow::loadModel()
 void MainWindow::openReadme()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/cumus/QT-3D-Model-Viewer"));
-}
-
-void MainWindow::addChild(GameObject *node)
-{
-    QVector<GameObject*>::iterator child = node->childs.begin();
-    for (; child != node->childs.end(); child++)
-    {
-        QTreeWidgetItem *treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, (*child)->name);
-        (*child)->hierarchyItem = treeItem;
-        node->hierarchyItem->addChild(treeItem);
-
-        addChild((*child));
-    }
-}
-
-void MainWindow::addNodeHierarchyTree()
-{
-    ui->hierarchy->clear();
-
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->hierarchy);
-    treeItem->setText(0,scene->root->name);
-    scene->root->hierarchyItem = treeItem;
-    ui->hierarchy->addTopLevelItem(treeItem);
-    addChild(scene->root);
 }
 

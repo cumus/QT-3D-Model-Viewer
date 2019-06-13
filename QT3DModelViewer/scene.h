@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include <QString>
+#include <mainwindow.h>
 
 class MyOpenGLWidget;
 //class Resources;
@@ -25,6 +26,8 @@ public:
 public:
     GameObject* root = nullptr;
     GameObject* goPatrick = nullptr;
+    MainWindow* mainWindow;
+    int goId = 0;
     //Resources* resources = nullptr;
     bool loadNewModel = false;
     QString newModelPath;

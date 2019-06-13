@@ -29,9 +29,7 @@ Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
     mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
     mesh->draw_border = true;
 
-
-
-    //mesh2->draw_border = true;
+    mainWindow->reloadHierarchy();
 
     return nullptr;
 }
@@ -54,6 +52,8 @@ void Scene::Draw(MyOpenGLWidget* renderer)
         //loadedModelMESH->draw_border = true;
 
         loadNewModel = false;
+
+        mainWindow->reloadHierarchy();
     }
 }
 
@@ -63,6 +63,8 @@ GameObject *Scene::AddGameObject(QString name, GameObject *parent)
         parent = root;
 
     GameObject* ret = new GameObject(name, parent);
+    ret->id = goId;
+    goId++;
     return ret;
 }
 
