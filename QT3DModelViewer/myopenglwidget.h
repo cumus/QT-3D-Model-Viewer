@@ -56,11 +56,10 @@ struct Camera
 
 struct Light
 {
+    bool isActive;
     QVector3D Position;
     QVector3D Color;
-    float Intensity;
-    float Radius;
-    int TypeLight; // 0 Directional, 1 PointLight
+    float range;
 };
 
 class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
@@ -77,6 +76,9 @@ public:
 
     void DrawMesh(Mesh* mesh = nullptr, SHADER_TYPE shader = DEFAULT);
     void LoadSubMesh(SubMesh* mesh = nullptr);
+
+    void ResetLights();
+    void RandomizeLights(float range, QVector3D pos_range, QVector3D offset = {0,0,0}, QVector3D min_color = {0,0,0});
 
 protected:
 
@@ -101,8 +103,7 @@ public:
 
     // Light
     QList<Light> lights;
-    QVector3D lightPos;
-    QVector3D lightColor;
+    bool camera_light_follow = true;
 
     // Deferred Rendering
     bool use_deferred = false;
@@ -160,7 +161,6 @@ private:
     int def_normalLoc;
     int def_albedospecLoc;
 
-
     // Framebuffer
     unsigned int fbo;
     //unsigned int textureColorbuffer;
@@ -176,8 +176,6 @@ private:
     unsigned int gPosition, gNormal, gAlbedoSpec;
 
     const unsigned int NR_LIGHTS = 32;
-    QVector<QVector3D> lightPositions;
-    QVector<QVector3D> lightColors;
 };
 
 #endif // MYOPENGLWIDGET_H

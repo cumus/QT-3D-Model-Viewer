@@ -20,8 +20,6 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
 
     cam.transform = new Transform(nullptr, true, {0,0,5},{0,0,0});
-    lightPos = {0,0,2};
-    lightColor = {1, 1, 1};
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
 
     border_color = QVector3D(1,0.27f,0);
@@ -68,6 +66,7 @@ void MyOpenGLWidget::Tick()
     if (cam_dir[3]) cam.transform->TranslateLeft(-0.01f * tick_period);
     if (cam_dir[4]) cam.transform->TranslateUp(0.01f * tick_period);
     if (cam_dir[5]) cam.transform->TranslateUp(-0.01f * tick_period);
+    if (camera_light_follow) lights[0].Position = cam.transform->GetPos();
 
     update();
 }
@@ -179,6 +178,7 @@ void MyOpenGLWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
     // normal color buffer
     glGenTextures(1, &gNormal);
     glBindTexture(GL_TEXTURE_2D, gNormal);
@@ -186,6 +186,7 @@ void MyOpenGLWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
     // color + specular color buffer
     glGenTextures(1, &gAlbedoSpec);
     glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
@@ -220,21 +221,8 @@ void MyOpenGLWidget::initializeGL()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    srand(13);
-    for (unsigned int i = 0; i < NR_LIGHTS; i++)
-    {
-        // calculate slightly random offsets
-        float xPos = ((rand() % 100) / 100.0f) * 6.0f - 3.0f;
-        float yPos = ((rand() % 100) / 100.0f) * 6.0f - 4.0f;
-        float zPos = ((rand() % 100) / 100.0f) * 6.0f - 3.0f;
-        lightPositions.push_back({xPos, yPos, zPos});
-
-        // also calculate random color
-        float rColor = ((rand() % 100) / 200.0f) + 0.5f; // between 0.5 and 1.0
-        float gColor = ((rand() % 100) / 200.0f) + 0.5f; // between 0.5 and 1.0
-        float bColor = ((rand() % 100) / 200.0f) + 0.5f; // between 0.5 and 1.0
-        lightColors.push_back({rColor, gColor, bColor});
-    }
+    ResetLights();
+    lights[0].isActive = true;
 
     // Enable depth buffer
     glEnable(GL_DEPTH_TEST);
@@ -314,8 +302,8 @@ void MyOpenGLWidget::paintGL()
     {
         QOpenGLFramebufferObject::bindDefault();
 
-        // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
-        // -----------------------------------------------------------------------------------------------------------------------
+        // 2. Lighting pass
+        // -----------------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         programs[DEFERRED_SHADING]->bind();
         glActiveTexture(GL_TEXTURE0);
@@ -325,21 +313,20 @@ void MyOpenGLWidget::paintGL()
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 
-        for (int i = 0; i < lightPositions.size(); i++)
+        for (int i = 0; i < lights.size(); i++)
         {
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Position").toStdString().c_str(), lightPositions[i]);
-            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Color").toStdString().c_str(), lightColors[i]);
-
-            // update attenuation parameters and calculate radius
-            const float constant = 1.0f; // note that we don't send this to the shader, we assume it is always 1.0 (in our case)
+            const float constant = 1.0f;
             const float linear = 0.7f;
             const float quadratic = 1.8f;
+            const float maxBrightness = std::fmaxf(std::fmaxf(lights[i].Color.x(), lights[i].Color.y()), lights[i].Color.z());
+            float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
+
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].isActive").toStdString().c_str(), lights[i].isActive);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Position").toStdString().c_str(), lights[i].Position);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Color").toStdString().c_str(), lights[i].Color);
+            programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Range").toStdString().c_str(), lights[i].range);
             programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Linear").toStdString().c_str(), linear);
             programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Quadratic").toStdString().c_str(), quadratic);
-
-            // then calculate radius of light volume/sphere
-            const float maxBrightness = std::fmaxf(std::fmaxf(lightColors[i].x(), lightColors[i].y()), lightColors[i].z());
-            float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
             programs[DEFERRED_SHADING]->setUniformValue(QString("lights[" + QString::number(i) + "].Radius").toStdString().c_str(), radius);
         }
 
@@ -347,8 +334,8 @@ void MyOpenGLWidget::paintGL()
         RenderQuad();
         programs[DEFERRED_SHADING]->release();
 
-        // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
-        // ----------------------------------------------------------------------------------
+        // 2.5. copy geometry depth buffer to framebuffer's depth buffer
+        // --------------------------------------------------------------
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -359,14 +346,12 @@ void MyOpenGLWidget::paintGL()
         QMatrix4x4 w;
         programs[DEFERRED_LIGHT]->bind();
         programs[DEFERRED_LIGHT]->setUniformValue("projection", cam.m_proj);
-        for (int i = 0; i < lightPositions.size(); i++)
+        for (int i = 0; i < lights.count(); i++)
         {
             w.setToIdentity();
-            w.translate(lightPositions[i]);
-            w.scale(0.5f);
-
+            w.translate(lights[i].Position);
             programs[DEFERRED_LIGHT]->setUniformValue("mv", cam.transform->GetWorldMatrix().inverted() * w);
-            programs[DEFERRED_LIGHT]->setUniformValue("lightColor", lightColors[i]);
+            programs[DEFERRED_LIGHT]->setUniformValue("lightColor", lights[i].Color);
             RenderCube();
         }
         programs[DEFERRED_LIGHT]->release();
@@ -385,7 +370,8 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         return;
     }
 
-    if (use_deferred && state == MODELS) shader = GRAPHIC_BUFFER;
+    if (use_deferred)
+        shader = GRAPHIC_BUFFER;
 
     QMatrix4x4 m_world = mesh->gameobject->transform->GetWorldMatrix();
     m_world.rotate(180.f, {0,0,1});
@@ -400,8 +386,6 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         program->setUniformValue(d_projMatrixLoc, cam.m_proj);
         program->setUniformValue(d_mvMatrixLoc, cam.transform->GetWorldMatrix().inverted() * m_world);
         program->setUniformValue(d_normalMatrixLoc, m_world.normalMatrix());
-        program->setUniformValue(d_lightPosLoc, lightPos);
-        program->setUniformValue(d_lightIntensityLoc, lightColor);
         program->setUniformValue(d_modeLoc, mode);
 
         for(int i = 0; i < mesh->sub_meshes.size(); i++)
@@ -464,6 +448,10 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
     }
     case GRAPHIC_BUFFER:
     {
+        if (state == BORDERS)
+            m_world.scale(border_scale);
+
+        program->setUniformValue("use_flat_color", state == BORDERS);
         program->setUniformValue("projection", cam.m_proj);
         program->setUniformValue("view", cam.transform->GetWorldMatrix().inverted());
         program->setUniformValue("model", m_world);
@@ -577,6 +565,46 @@ void MyOpenGLWidget::LoadSubMesh(SubMesh *mesh)
     programs[DEFAULT]->release();
 }
 
+void MyOpenGLWidget::ResetLights()
+{
+    lights.clear();
+
+    for (unsigned int i = 0; i < NR_LIGHTS; i++)
+    {
+        Light light;
+        light.isActive = false;
+        light.Position = {0,0,0};
+        light.Color = {1,1,1};
+        light.range = 10.0f;
+        lights.push_back(light);
+    }
+}
+
+void MyOpenGLWidget::RandomizeLights(float range, QVector3D pos_range, QVector3D offset, QVector3D min_color)
+{
+    srand(13);
+    for (unsigned int i = 0; i < NR_LIGHTS; i++)
+    {
+        lights.clear();
+
+        for (unsigned int i = 0; i < NR_LIGHTS; i++)
+        {
+            Light light;
+            light.isActive = false;
+            light.Position =
+            {((rand() % 100) / 100.0f) * pos_range.x() + offset.x(),
+             ((rand() % 100) / 100.0f) * pos_range.y() + offset.y(),
+             ((rand() % 100) / 100.0f) * pos_range.z() + offset.z()};
+            light.Color =
+            {((rand() % 100) / 100.0f) * (1.0f - min_color.x())+ min_color.x(),
+             ((rand() % 100) / 100.0f) * (1.0f - min_color.y())+ min_color.y(),
+             ((rand() % 100) / 100.0f) * (1.0f - min_color.z())+ min_color.z()};
+            light.range = ((rand() % 100) / 100.0f) * range;
+            lights.push_back(light);
+        }
+    }
+}
+
 void MyOpenGLWidget::resizeGL(int width, int height)
 {
     cam.m_proj.setToIdentity();
@@ -614,7 +642,8 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_D: cam_dir[3] = true; break;
     case Qt::Key_Space: cam_dir[4] = true; break;
     case Qt::Key_E: cam_dir[5] = true; break;
-    case Qt::Key_F: lightPos = cam.transform->GetPos(); break;
+    case Qt::Key_F: camera_light_follow = !camera_light_follow; break;
+    case Qt::Key_R: lights[0].isActive = !lights[0].isActive; break;
     case Qt::Key_X: mode = mode+1.f>7.f?0:mode+1; break;
     case Qt::Key_G: use_deferred = !use_deferred; break;
     default: break;
