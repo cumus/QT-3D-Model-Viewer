@@ -12,11 +12,11 @@ struct Light {
     bool isActive;
     vec3 Position;
     vec3 Color;
-
+    float Intensity;
+    float Range;
     float Linear;
     float Quadratic;
     float Radius;
-    float Range;
 };
 const int NR_LIGHTS = 32;
 uniform Light lights[NR_LIGHTS];
@@ -35,8 +35,11 @@ void main()
     vec3 viewDir  = normalize(viewPos - FragPos);
     for(int i = 0; i < NR_LIGHTS; ++i)
     {
+        if (lights[i].Intensity <= 0.01)
+            lights[i].Intensity = 0.01;
+
         // calculate distance between light source and current fragment
-        float distance = length(lights[i].Position - FragPos) - lights[i].Range;
+        float distance = (length(lights[i].Position - FragPos) - lights[i].Range) / lights[i].Intensity;
 
         if (distance < 0)
             distance = 0;

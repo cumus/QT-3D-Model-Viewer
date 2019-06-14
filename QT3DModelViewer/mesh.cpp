@@ -34,17 +34,6 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
 {
     Assimp::Importer import;
 
-    /*/##################
-    QFile file(path);
-    if(!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << file.errorString() << path << endl;
-        qDebug() << "Could not open file for read: " << path << endl;
-        return;
-    }
-
-    QByteArray data = file.readAll();*/
-
     const aiScene *scene = import.ReadFile(
                     path.toStdString(),
                     aiProcess_CalcTangentSpace |
@@ -55,19 +44,6 @@ void Mesh::importModel(QString path, MyOpenGLWidget* renderer)
                     aiProcess_PreTransformVertices |
                     aiProcess_FlipUVs |
                     aiProcess_OptimizeMeshes);
-    /*
-    const aiScene *scene = import.ReadFileFromMemory(
-                data.data(), static_cast<size_t>(data.size()),
-                aiProcess_Triangulate |
-                aiProcess_FlipUVs |
-                aiProcess_GenSmoothNormals |
-                aiProcess_OptimizeMeshes |
-                aiProcess_PreTransformVertices |
-                aiProcess_SortByPType |
-                aiProcess_ImproveCacheLocality),
-                ".obj");
-*/
-    //##################
 
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -104,6 +80,7 @@ void Mesh::processNode(aiNode *node, const aiScene *scene, MyOpenGLWidget* rende
     t.Decompose(scale, rot, pos);
     gameobject->transform->Translate({pos.x, pos.y, pos.z});
     gameobject->transform->RotateQ({rot.x, rot.y, rot.z, rot.w});
+    gameobject->transform->RotateZ(-180.0f); // flip mesh
     gameobject->transform->SetScale({scale.x, scale.y, scale.z});
 
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -242,7 +219,7 @@ QVector<Texture> Mesh::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
         aiString str;
         mat->GetTexture(type, i, &str);
         bool skip = false;
-        for(unsigned int j = 0; j < texturesLoaded.size(); j++)
+        for(int j = 0; j < texturesLoaded.size(); j++)
         {
             //qDebug() << texturesLoaded[j].path << "COMPARE" << str.C_Str();
             if(texturesLoaded[j].path.contains(str.C_Str()))

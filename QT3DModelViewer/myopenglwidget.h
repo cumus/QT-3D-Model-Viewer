@@ -39,8 +39,10 @@ enum SHADER_TYPE : int
 
 enum RENDER_STATE : int
 {
+    WIDGET_CREATED,
     INITIALIZING,
     INITIALIZED,
+    PREPARING_TO_DRAW,
     MODELS,
     BORDERED_MODELS,
     BORDERS,
@@ -50,8 +52,6 @@ enum RENDER_STATE : int
 
 struct Camera
 {
-    Transform* transform;
-    QMatrix4x4 m_proj;
 };
 
 struct Light
@@ -59,7 +59,16 @@ struct Light
     bool isActive;
     QVector3D Position;
     QVector3D Color;
-    float range;
+    float Intensity;
+    float MinRange;
+    float Constant;
+    float Linear;
+    float Quadratic;
+
+    // dependent values
+    float radius;
+    float maxBrightness;
+    bool updated;
 };
 
 class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
@@ -94,12 +103,18 @@ private:
 
     void RenderQuad();
     void RenderCube();
+    void LoadShaders();
+    void LoadFramebuffer();
+    void DrawBordered();
+    void PostProcessDeferredLights();
 
 public:
 
+    // Scene
     Scene* scene = nullptr;
 
-    Camera cam;
+    // Camera
+    Transform* camera = nullptr;
 
     // Light
     QList<Light> lights;
@@ -115,11 +130,13 @@ public:
     bool border_over_borderless = true; // border depth test
 
     // Shaders
+private:
+
     QVector<QOpenGLShaderProgram*> programs;
     float mode = 0;
 
-private:
 
+    // Render state
     RENDER_STATE state;
 
     // Camera
@@ -134,7 +151,28 @@ private:
     // Context dimensions
     int width, height;
 
-    // Shader uniforms
+    // Framebuffer
+    unsigned int fbo;
+    unsigned int gPosition, gNormal, gAlbedoSpec;
+    unsigned int rboDepth;
+
+    // Screen Quad
+    unsigned int quadVAO = 0;
+    unsigned int quadVBO;
+
+    // Skybox
+    unsigned int skyboxVAO = 0;
+    unsigned int skyboxVBO;
+
+    // Ligh Cube
+    unsigned int cubeVAO = 0;
+    unsigned int cubeVBO;
+
+    // Border stack vector
+    QVector<Mesh*> border_meshes;
+
+    // Shader uniform Locations
+    QMatrix4x4 m_proj;
     // Default
     int d_mvMatrixLoc;
     int d_normalMatrixLoc;
@@ -150,31 +188,14 @@ private:
     int sc_alpha;
     // Framebuffer to screen
     int fs_screenTexture;
-    /*/ Graphic Buffer
-    int gb_model;
-    int gb_modelInv;
-    int gb_view;
-    int gb_projection;*/
+    // Graphic Buffer
     // Deferred Shading
     // Lightning Pass
     int def_posLoc;
     int def_normalLoc;
     int def_albedospecLoc;
 
-    // Framebuffer
-    unsigned int fbo;
-    //unsigned int textureColorbuffer;
-    unsigned int rboDepth;
-
-    // Border stack vector
-    QVector<Mesh*> border_meshes;
-
-    unsigned int quadVAO = 0;
-    unsigned int quadVBO;
-    unsigned int cubeVAO = 0;
-    unsigned int cubeVBO;
-    unsigned int gPosition, gNormal, gAlbedoSpec;
-
+    // Max Lights
     const unsigned int NR_LIGHTS = 32;
 };
 
