@@ -40,10 +40,26 @@ private:
 
     Resources* resources= nullptr;
     Scene* scene= nullptr;
+    GameObject* selectedGo = nullptr;
 
 public slots:
     void loadModel();
     void openReadme();
+    void reloadInspector();
+
+    void changeActiveGo();
+
+    void changePositionX();
+    void changePositionY();
+    void changePositionZ();
+
+    void changeRotationX();
+    void changeRotationY();
+    void changeRotationZ();
+
+    void changeScaleX();
+    void changeScaleY();
+    void changeScaleZ();
 };
 
 #endif // MAINWINDOW_H

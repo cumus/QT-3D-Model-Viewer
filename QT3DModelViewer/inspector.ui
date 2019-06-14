@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>250</width>
+    <width>270</width>
     <height>300</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>250</width>
+    <width>270</width>
     <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>250</width>
+    <width>270</width>
     <height>16777215</height>
    </size>
   </property>
@@ -30,7 +30,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>222</width>
+     <width>270</width>
      <height>311</height>
     </rect>
    </property>
@@ -150,13 +150,34 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="positionX"/>
+       <widget class="QDoubleSpinBox" name="positionX">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="positionY"/>
+       <widget class="QDoubleSpinBox" name="positionY">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="positionZ"/>
+       <widget class="QDoubleSpinBox" name="positionZ">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -170,13 +191,34 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="rotationX"/>
+       <widget class="QDoubleSpinBox" name="rotationX">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="rotationY"/>
+       <widget class="QDoubleSpinBox" name="rotationY">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="rotationZ"/>
+       <widget class="QDoubleSpinBox" name="rotationZ">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -190,13 +232,34 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="scaleX"/>
+       <widget class="QDoubleSpinBox" name="scaleX">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="scaleY"/>
+       <widget class="QDoubleSpinBox" name="scaleY">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="scaleZ"/>
+       <widget class="QDoubleSpinBox" name="scaleZ">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

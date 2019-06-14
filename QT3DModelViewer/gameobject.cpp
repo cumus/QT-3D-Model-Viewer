@@ -44,7 +44,8 @@ void GameObject::Draw(MyOpenGLWidget* renderer)
     // Draw Childs
     QVector<GameObject*>::iterator child = childs.begin();
     for (; child != childs.end(); child++)
-        (*child)->Draw(renderer);
+        if((*child)->transform->isActive)
+            (*child)->Draw(renderer);
 }
 
 void GameObject::Save(QDataStream& stream){}
