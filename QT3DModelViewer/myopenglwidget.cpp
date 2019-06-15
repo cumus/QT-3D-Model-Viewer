@@ -142,6 +142,8 @@ void MyOpenGLWidget::paintGL()
     {
         scene->Draw(this);
 
+        RenderSkybox();
+
         DrawBordered();
 
         PostProcessDeferredLights();
@@ -180,6 +182,10 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         program->setUniformValue(d_normalMatrixLoc, m_world.normalMatrix());
         program->setUniformValue(d_modeLoc, mode);
 
+        program->setUniformValue("modelInvTranMatrix", m_world.inverted().transposed());
+        program->setUniformValue("modelMatrix", m_world);
+        program->setUniformValue("viewMatrix", camera->GetWorldMatrix());
+
         for(int i = 0; i < mesh->sub_meshes.size(); i++)
         {
             SubMesh* sub = mesh->sub_meshes[i];
@@ -194,6 +200,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
 
                 for(int i = 0; i < sub->textures.size(); i++)
                 {
+                    if (skybox != nullptr) skybox->bind();
                     glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(i)); // active proper texture unit before binding
                     // retrieve texture number (the N in diffuse_textureN)
                     QString number;
@@ -561,6 +568,117 @@ void MyOpenGLWidget::RenderCube()
     glBindVertexArray(0);
 }
 
+void MyOpenGLWidget::RenderSkybox()
+{
+    if (skybox == nullptr)
+    {
+        GLfloat skyboxVertices[] = {
+            // positions
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f
+        };
+
+        glGenVertexArrays(1, &skyboxVAO);
+        glBindVertexArray(skyboxVAO);
+
+        glGenBuffers(1, &skyboxVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+
+        QString paths[6];
+        paths[0] = "/Skyboxes/sor_land/land_rt.JPG";
+        paths[1] = "/Skyboxes/sor_land/land_up1.JPG";
+        paths[2] = "/Skyboxes/sor_land/land_bk.JPG";
+        paths[3] = "/Skyboxes/sor_land/land_lf.JPG";
+        paths[4] = "/Skyboxes/sor_land/land_dn.JPG";
+        paths[5] = "/Skyboxes/sor_land/land_ft.JPG";
+
+        posx = QImage(qApp->applicationDirPath() + paths[0]).convertToFormat(QImage::Format_RGBA8888);
+        posy = QImage(qApp->applicationDirPath() + paths[1]).convertToFormat(QImage::Format_RGBA8888);
+        posz = QImage(qApp->applicationDirPath() + paths[2]).convertToFormat(QImage::Format_RGBA8888);
+        negx = QImage(qApp->applicationDirPath() + paths[3]).convertToFormat(QImage::Format_RGBA8888);
+        negy = QImage(qApp->applicationDirPath() + paths[4]).convertToFormat(QImage::Format_RGBA8888);
+        negz = QImage(qApp->applicationDirPath() + paths[5]).convertToFormat(QImage::Format_RGBA8888);
+
+        skybox = new QOpenGLTexture(QOpenGLTexture::TargetCubeMap);
+        skybox->create();
+        skybox->setSize(posx.width(), posx.height(), posx.depth());
+        skybox->setFormat(QOpenGLTexture::RGBA8_UNorm);
+        skybox->allocateStorage();
+
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapPositiveX, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(posx.constBits()), nullptr);
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapPositiveY, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(posy.constBits()), nullptr);
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapPositiveZ, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(posz.constBits()), nullptr);
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapNegativeX, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(negx.constBits()), nullptr);
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapNegativeY, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(negy.constBits()), nullptr);
+        skybox->setData(0, 0, QOpenGLTexture::CubeMapNegativeZ, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, static_cast<const void*>(negz.constBits()), nullptr);
+
+        skybox->setWrapMode(QOpenGLTexture::ClampToEdge);
+        skybox->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+        skybox->setMagnificationFilter(QOpenGLTexture::LinearMipMapLinear);
+        skybox->generateMipMaps();
+
+        qDebug() << "Created Skybox at " << skybox->textureId();
+    }
+
+    glDepthFunc(GL_LEQUAL);
+    programs[SKYBOX]->bind();
+
+    QMatrix4x4 view = camera->GetWorldMatrix().inverted();
+    view.translate(-camera->GetPos());
+    view.scale(300.0f);
+    programs[SKYBOX]->setUniformValue("view", view);
+    programs[SKYBOX]->setUniformValue("projection", m_proj);
+    glBindVertexArray(skyboxVAO);
+
+    skybox->bind();
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    programs[SKYBOX]->release();
+    glDepthFunc(GL_LESS);
+}
+
 void MyOpenGLWidget::LoadShaders()
 {
     // Default shader
@@ -647,6 +765,15 @@ void MyOpenGLWidget::LoadShaders()
     if (!dl_shader->bind()) qDebug() << "Error Binding Lightning Pass Shader";
     programs.push_back(dl_shader);
     dl_shader->release();
+
+    // Skybox shader
+    QOpenGLShaderProgram* sb_shader = new QOpenGLShaderProgram();
+    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/skybox.vert")) qDebug() << "Error loading skybox.vert shader";
+    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/skybox.frag")) qDebug() << "Error loading skybox.frag shader";
+    if (!sb_shader->link()) qDebug() << "Error Linking Skybox Shader";
+    if (!sb_shader->bind()) qDebug() << "Error Binding Skybox Shader";
+    programs.push_back(sb_shader);
+    sb_shader->release();
 }
 
 void MyOpenGLWidget::LoadFramebuffer()

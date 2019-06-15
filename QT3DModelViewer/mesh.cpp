@@ -224,7 +224,6 @@ QVector<Texture> Mesh::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
             //qDebug() << texturesLoaded[j].path << "COMPARE" << str.C_Str();
             if(texturesLoaded[j].path.contains(str.C_Str()))
             {
-
                 textures.push_back(texturesLoaded[j]);
                 skip = true;
                 break;

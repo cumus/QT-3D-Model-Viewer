@@ -34,7 +34,8 @@ enum SHADER_TYPE : int
     FRAMEBUFFER_TO_SCREEN,
     GRAPHIC_BUFFER,
     DEFERRED_SHADING,
-    DEFERRED_LIGHT
+    DEFERRED_LIGHT,
+    SKYBOX
 };
 
 enum RENDER_STATE : int
@@ -103,6 +104,7 @@ private:
 
     void RenderQuad();
     void RenderCube();
+    void RenderSkybox();
     void LoadShaders();
     void LoadFramebuffer();
     void DrawBordered();
@@ -135,7 +137,6 @@ private:
     QVector<QOpenGLShaderProgram*> programs;
     float mode = 0;
 
-
     // Render state
     RENDER_STATE state;
 
@@ -163,6 +164,14 @@ private:
     // Skybox
     unsigned int skyboxVAO = 0;
     unsigned int skyboxVBO;
+    unsigned int cubemapTexture;
+    QOpenGLTexture* skybox = nullptr;
+    QImage posx;
+    QImage posy;
+    QImage posz;
+    QImage negx;
+    QImage negy;
+    QImage negz;
 
     // Ligh Cube
     unsigned int cubeVAO = 0;

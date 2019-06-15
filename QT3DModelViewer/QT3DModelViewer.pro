@@ -131,6 +131,32 @@ DISTFILES += \
     Shaders/graphic_buffer.vert \
     Shaders/singlecolor.frag \
     Shaders/singlecolor.vert \
+    Shaders/skybox.frag \
+    Shaders/skybox.vert \
+    Skyboxes/mp_blood/blood_bk.tga \
+    Skyboxes/mp_blood/blood_dn.tga \
+    Skyboxes/mp_blood/blood_ft.tga \
+    Skyboxes/mp_blood/blood_lf.tga \
+    Skyboxes/mp_blood/blood_rt.tga \
+    Skyboxes/mp_blood/blood_up.tga \
+    Skyboxes/mp_boulder/boulder-bay_bk.tga \
+    Skyboxes/mp_boulder/boulder-bay_dn.tga \
+    Skyboxes/mp_boulder/boulder-bay_ft.tga \
+    Skyboxes/mp_boulder/boulder-bay_lf.tga \
+    Skyboxes/mp_boulder/boulder-bay_rt.tga \
+    Skyboxes/mp_boulder/boulder-bay_up.tga \
+    Skyboxes/sor_lake1/lake1_bk.JPG \
+    Skyboxes/sor_lake1/lake1_dn.JPG \
+    Skyboxes/sor_lake1/lake1_ft.JPG \
+    Skyboxes/sor_lake1/lake1_lf.JPG \
+    Skyboxes/sor_lake1/lake1_rt.JPG \
+    Skyboxes/sor_lake1/lake1_up.JPG \
+    Skyboxes/sor_land/land_bk.JPG \
+    Skyboxes/sor_land/land_dn.JPG \
+    Skyboxes/sor_land/land_ft.JPG \
+    Skyboxes/sor_land/land_lf.JPG \
+    Skyboxes/sor_land/land_rt.JPG \
+    Skyboxes/sor_land/land_up.JPG \
     default.frag \
     default.vert \
     deferred_light.frag \
@@ -139,7 +165,8 @@ DISTFILES += \
     deferred_shading.vert \
     graphic_buffer.frag \
     graphic_buffer.vert \
-    singlecolor.frag
+    singlecolor.frag \
+    skybox.vert
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimp
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimpd
