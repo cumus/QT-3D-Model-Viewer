@@ -122,8 +122,9 @@ public:
     QList<Light> lights;
     bool camera_light_follow = true;
 
-    // Deferred Rendering
+    // Rendering Options
     bool use_deferred = false;
+    float mode = 8;
 
     // Stencil Border
     float border_scale = 1.1f;
@@ -131,11 +132,10 @@ public:
     float border_alpha = 0.8f;
     bool border_over_borderless = true; // border depth test
 
-    // Shaders
 private:
 
+    // Shaders
     QVector<QOpenGLShaderProgram*> programs;
-    float mode = 0;
 
     // Render state
     RENDER_STATE state;

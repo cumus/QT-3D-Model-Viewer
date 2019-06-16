@@ -180,11 +180,10 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
         program->setUniformValue(d_projMatrixLoc, m_proj);
         program->setUniformValue(d_mvMatrixLoc, camera->GetWorldMatrix().inverted() * m_world);
         program->setUniformValue(d_normalMatrixLoc, m_world.normalMatrix());
-        program->setUniformValue(d_modeLoc, mode);
-
-        program->setUniformValue("modelInvTranMatrix", m_world.inverted().transposed());
         program->setUniformValue("modelMatrix", m_world);
-        program->setUniformValue("viewMatrix", camera->GetWorldMatrix());
+        program->setUniformValue("cameraPos", camera->GetPos());
+        program->setUniformValue("refraction_index", mesh->refraction_index);
+        program->setUniformValue(d_modeLoc, mode);
 
         for(int i = 0; i < mesh->sub_meshes.size(); i++)
         {
@@ -192,23 +191,19 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
 
             if(sub->vao.isCreated())
             {
-                // bind appropriate textures
+                if (skybox != nullptr)
+                    skybox->bind();
+
                 unsigned int diffuseNr  = 1;
                 unsigned int specularNr = 1;
-                unsigned int normalNr   = 1;
-                unsigned int heightNr   = 1;
 
                 for(int i = 0; i < sub->textures.size(); i++)
                 {
-                    if (skybox != nullptr) skybox->bind();
-                    glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(i)); // active proper texture unit before binding
-                    // retrieve texture number (the N in diffuse_textureN)
+                    glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(i));
                     QString number;
                     QString name = sub->textures[i].type;
                     if(name == "texture_diffuse") number = QString(diffuseNr++);
                     else if(name == "texture_specular") number = QString(specularNr++);
-                    else if(name == "texture_normal") number = QString(normalNr++);
-                    else if(name == "texture_height") number = QString(heightNr++);
 
                     program->setUniformValue((name + number).toStdString().c_str(), static_cast<unsigned int>(i));
                     sub->textures[i].glTexture->bind();
@@ -264,20 +259,15 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
                 // bind appropriate textures
                 unsigned int diffuseNr  = 1;
                 unsigned int specularNr = 1;
-                unsigned int normalNr   = 1;
-                unsigned int heightNr   = 1;
 
                 for(int i = 0; i < sub->textures.size(); i++)
                 {
-                    glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(i)); // active proper texture unit before binding
-                    // retrieve texture number (the N in diffuse_textureN)
                     QString number;
                     QString name = sub->textures[i].type;
                     if(name == "texture_diffuse") number = QString(diffuseNr++);
                     else if(name == "texture_specular") number = QString(specularNr++);
-                    else if(name == "texture_normal") number = QString(normalNr++);
-                    else if(name == "texture_height") number = QString(heightNr++);
 
+                    glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(i));
                     program->setUniformValue((name + number).toStdString().c_str(), static_cast<unsigned int>(i));
                     sub->textures[i].glTexture->bind();
                 }
@@ -450,7 +440,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_E: cam_dir[5] = true; break;
     case Qt::Key_F: camera_light_follow = !camera_light_follow; break;
     case Qt::Key_R: lights[0].isActive = !lights[0].isActive; break;
-    case Qt::Key_X: mode = mode+1.f>7.f?0:mode+1; break;
+    case Qt::Key_X: mode = mode+1.f>9.f?0:mode+1; break;
     case Qt::Key_G: use_deferred = !use_deferred; break;
     default: break;
     }

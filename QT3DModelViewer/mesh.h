@@ -87,6 +87,8 @@ public:
     QVector<SubMesh*> sub_meshes;
     QVector<Texture> texturesLoaded;
     bool draw_border = false;
+    float refraction_index = 1.52f;
+    bool isReflective = false;
 
 private:
 
