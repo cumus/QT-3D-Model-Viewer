@@ -436,8 +436,9 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_S: cam_dir[1] = true; break;
     case Qt::Key_A: cam_dir[2] = true; break;
     case Qt::Key_D: cam_dir[3] = true; break;
-    case Qt::Key_Space: cam_dir[4] = true; break;
-    case Qt::Key_E: cam_dir[5] = true; break;
+    case Qt::Key_E: cam_dir[4] = true; break;
+    case Qt::Key_Q: cam_dir[5] = true; break;
+
     case Qt::Key_F: camera_light_follow = !camera_light_follow; break;
     case Qt::Key_R: lights[0].isActive = !lights[0].isActive; break;
     case Qt::Key_X: mode = mode+1.f>9.f?0:mode+1; break;
@@ -454,8 +455,8 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_S: cam_dir[1] = false; break;
     case Qt::Key_A: cam_dir[2] = false; break;
     case Qt::Key_D: cam_dir[3] = false; break;
-    case Qt::Key_Space: cam_dir[4] = false; break;
-    case Qt::Key_E: cam_dir[5] = false; break;
+    case Qt::Key_E: cam_dir[4] = false; break;
+    case Qt::Key_Q: cam_dir[5] = false; break;
     default: break;
     }
 }
