@@ -44,6 +44,19 @@ private:
 
 public slots:
     void loadModel();
+
+    void shaderDiffuse();
+    void shaderVertexPosition();
+    void shaderVertexNormal();
+    void shaderVertexTextureCoords();
+    void shaderBitangents();
+    void shaderTangents();
+    void shaderDepth();
+    void shaderLinearDepth();
+    void shaderReflection();
+    void shaderRefraction();
+    void shaderDeferred();
+
     void openReadme();
     void reloadInspector();
 

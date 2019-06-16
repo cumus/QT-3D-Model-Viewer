@@ -151,7 +151,25 @@
     </property>
     <addaction name="actionReadme"/>
    </widget>
+   <widget class="QMenu" name="menuShaders">
+    <property name="title">
+     <string>Shaders</string>
+    </property>
+    <addaction name="actionDiffuse_Texture"/>
+    <addaction name="actionVertex_Position"/>
+    <addaction name="actionVertex_Normal"/>
+    <addaction name="actionVertex_Texture_Coord"/>
+    <addaction name="actionBitangents"/>
+    <addaction name="actionTangents"/>
+    <addaction name="actionDepth"/>
+    <addaction name="actionLinear_Depth"/>
+    <addaction name="actionReflection"/>
+    <addaction name="actionRefraction"/>
+    <addaction name="separator"/>
+    <addaction name="actionDeferred_Shading"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuShaders"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadModel">
@@ -178,6 +196,67 @@
    </property>
    <property name="text">
     <string>Readme</string>
+   </property>
+  </action>
+  <action name="actionDiffuse_Texture">
+   <property name="text">
+    <string>Diffuse Texture</string>
+   </property>
+  </action>
+  <action name="actionVertex_Position">
+   <property name="text">
+    <string>Vertex Position</string>
+   </property>
+  </action>
+  <action name="actionVertex_Normal">
+   <property name="text">
+    <string>Vertex Normal</string>
+   </property>
+  </action>
+  <action name="actionVertex_Texture_Coord">
+   <property name="text">
+    <string>Vertex Texture Coord</string>
+   </property>
+  </action>
+  <action name="actionBitangents">
+   <property name="text">
+    <string>Bitangents</string>
+   </property>
+  </action>
+  <action name="actionTangents">
+   <property name="text">
+    <string>Tangents</string>
+   </property>
+  </action>
+  <action name="actionDepth">
+   <property name="text">
+    <string>Depth</string>
+   </property>
+  </action>
+  <action name="actionLinear_Depth">
+   <property name="text">
+    <string>Linear Depth</string>
+   </property>
+  </action>
+  <action name="actionReflection">
+   <property name="text">
+    <string>Reflection</string>
+   </property>
+  </action>
+  <action name="actionRefraction">
+   <property name="text">
+    <string>Refraction</string>
+   </property>
+  </action>
+  <action name="actionDeferred_Shading">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Deferred Shading</string>
+   </property>
+   <property name="toolTip">
+    <string>Deferred Shading</string>
    </property>
   </action>
  </widget>

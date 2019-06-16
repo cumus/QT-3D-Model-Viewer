@@ -40,6 +40,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionReadme, SIGNAL(triggered()), this, SLOT(openReadme()));
     connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
+    connect(ui->actionDiffuse_Texture, SIGNAL(triggered()), this, SLOT(shaderDiffuse()));
+    connect(ui->actionVertex_Position, SIGNAL(triggered()), this, SLOT(shaderVertexPosition()));
+    connect(ui->actionVertex_Normal, SIGNAL(triggered()), this, SLOT(shaderVertexNormal()));
+    connect(ui->actionVertex_Texture_Coord, SIGNAL(triggered()), this, SLOT(shaderVertexTextureCoords()));
+    connect(ui->actionBitangents, SIGNAL(triggered()), this, SLOT(shaderBitangents()));
+    connect(ui->actionTangents, SIGNAL(triggered()), this, SLOT(shaderTangents()));
+    connect(ui->actionDepth, SIGNAL(triggered()), this, SLOT(shaderDepth()));
+    connect(ui->actionLinear_Depth, SIGNAL(triggered()), this, SLOT(shaderLinearDepth()));
+    connect(ui->actionReflection, SIGNAL(triggered()), this, SLOT(shaderReflection()));
+    connect(ui->actionRefraction, SIGNAL(triggered()), this, SLOT(shaderRefraction()));
+    connect(ui->actionDeferred_Shading, SIGNAL(triggered()), this, SLOT(shaderDeferred()));
+
     connect(ui->hierarchy, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),this, SLOT(reloadInspector()));
 
     //Inspector connections
@@ -88,6 +100,61 @@ void MainWindow::loadModel()
         scene->newModelPath = file;
         scene->loadNewModel = true;
     }
+}
+
+void MainWindow::shaderDiffuse()
+{
+    myOpenGLWidget->mode = 0;
+}
+
+void MainWindow::shaderVertexPosition()
+{
+    myOpenGLWidget->mode = 1;
+}
+
+void MainWindow::shaderVertexNormal()
+{
+    myOpenGLWidget->mode = 2;
+}
+
+void MainWindow::shaderVertexTextureCoords()
+{
+    myOpenGLWidget->mode = 3;
+}
+
+void MainWindow::shaderBitangents()
+{
+    myOpenGLWidget->mode = 4;
+}
+
+void MainWindow::shaderTangents()
+{
+    myOpenGLWidget->mode = 5;
+}
+
+void MainWindow::shaderDepth()
+{
+    myOpenGLWidget->mode = 6;
+}
+
+void MainWindow::shaderLinearDepth()
+{
+    myOpenGLWidget->mode = 7;
+}
+
+void MainWindow::shaderReflection()
+{
+    myOpenGLWidget->mode = 8;
+}
+
+void MainWindow::shaderRefraction()
+{
+    myOpenGLWidget->mode = 9;
+}
+
+void MainWindow::shaderDeferred()
+{
+    myOpenGLWidget->use_deferred = !myOpenGLWidget->use_deferred;
 }
 
 void MainWindow::openReadme()
