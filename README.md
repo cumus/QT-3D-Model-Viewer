@@ -1,7 +1,6 @@
 # QT 3D Model Viewer
 Authors: [Daniel Triviño](https://github.com/dibu13) and [Rubén Sardón](https://github.com/cumus/)
 
-![Reflection](https://cdn.discordapp.com/attachments/501422266152779776/590024836584046600/Captura13_Reflection.PNG)
 # What does it do?
 The program loads a skyboxes and a sample model by default and dumps them to a scene with a camera the user can move. The way models render can be changed using the menu's tools.
 
@@ -36,15 +35,28 @@ By deafault, 2 different skyboxes load and it can be toggled wich one shows.
 * Space: drop light at camera position (up to 32 lights including camera's)
 
 ## Screenshots
+Deferred Light Shading
 ![Deferred Shader](https://cdn.discordapp.com/attachments/501422266152779776/590024075582242817/Captura12_DeferredShader.PNG)
+Reflection
+![Reflection](https://cdn.discordapp.com/attachments/501422266152779776/590024836584046600/Captura13_Reflection.PNG)
+Refraction
 ![Refraction](https://cdn.discordapp.com/attachments/501422266152779776/590024870956367872/Captura14_Refraction.PNG)
+Borders
 ![Draw Borders](https://cdn.discordapp.com/attachments/501422266152779776/590025306488963083/Captura15_DrawBorders.PNG)
+Secondary Skybox
 ![Skybox](https://cdn.discordapp.com/attachments/501422266152779776/590026324039696394/Captura16_Skybox.PNG)
+Vertex Position
 ![Position](https://cdn.discordapp.com/attachments/501422266152779776/590017890111979531/Captura05_VertexPosition.PNG)
+Vertex Normal
 ![Normal](https://cdn.discordapp.com/attachments/501422266152779776/590018101437792326/Captura06_VertexNormal.PNG)
+Vertex Texture Coord
 ![Texture Coord](https://cdn.discordapp.com/attachments/501422266152779776/590018303385141279/Captura07_VertexTextCoord.PNG)
+Vertex Bitangent
 ![Bitangents](https://cdn.discordapp.com/attachments/501422266152779776/590018489440534551/Captura08_Bitangents.PNG)
+Vertex Tangents
 ![Tangents](https://cdn.discordapp.com/attachments/501422266152779776/590018671368208429/Captura09_Tangents.PNG)
+Depth
 ![Depth](https://cdn.discordapp.com/attachments/501422266152779776/590018891413979165/Captura10_Depth.PNG)
+Linear Depth
 ![Linear Depth](https://cdn.discordapp.com/attachments/501422266152779776/590019063149887488/Captura11_LinearDepth.PNG)
 
