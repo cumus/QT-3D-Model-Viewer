@@ -650,7 +650,7 @@ void MyOpenGLWidget::RenderSkybox()
 
         QString paths[6];
         paths[0] = "/Skyboxes/sor_land/land_rt.JPG";
-        paths[1] = "/Skyboxes/sor_land/land_up1.JPG";
+        paths[1] = "/Skyboxes/sor_land/land_up.JPG";
         paths[2] = "/Skyboxes/sor_land/land_bk.JPG";
         paths[3] = "/Skyboxes/sor_land/land_lf.JPG";
         paths[4] = "/Skyboxes/sor_land/land_dn.JPG";
