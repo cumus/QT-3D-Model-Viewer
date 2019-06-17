@@ -56,6 +56,10 @@ public slots:
     void shaderReflection();
     void shaderRefraction();
     void shaderDeferred();
+    void drawBorders();
+
+    void skybox0();
+    void skybox1();
 
     void openReadme();
     void reloadInspector();
