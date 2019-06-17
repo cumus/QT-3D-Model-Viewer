@@ -95,6 +95,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
 private:
 
@@ -114,6 +115,7 @@ public:
     // Camera
     Transform* camera = nullptr;
     QVector3D cam_focus;
+    float zoom = 45.0f;
 
     // Light
     QList<Light> lights;

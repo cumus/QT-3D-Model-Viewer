@@ -204,6 +204,7 @@ void MainWindow::reloadInspector()
             {
                 //qDebug()<<"ROLID:" << id;
                 selectedGo = scene->root->childs[i];
+                myOpenGLWidget->cam_focus = selectedGo->transform->GetPos();
 
                 //GameObject
                 uiInspector->activeBox->setChecked(scene->root->childs[i]->transform->isActive);

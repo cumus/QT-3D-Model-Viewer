@@ -405,7 +405,7 @@ void MyOpenGLWidget::RandomizeLights(float range, QVector3D pos_range, QVector3D
 void MyOpenGLWidget::resizeGL(int width, int height)
 {
     m_proj.setToIdentity();
-    m_proj.perspective(45.0f, GLfloat(width) / height, 0.1f, 100.0f);
+    m_proj.perspective(zoom, GLfloat(width) / height, 0.1f, 100.0f);
 
     this->width = width;
     this->height = height;
@@ -481,6 +481,17 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+void MyOpenGLWidget::wheelEvent(QWheelEvent *event)
+{
+    zoom -= event->angleDelta().y() * 0.01f;
+
+    if (zoom < 1) zoom = 1;
+    else if (zoom > 160) zoom = 160;
+
+    m_proj.setToIdentity();
+    m_proj.perspective(zoom, GLfloat(width) / height, 0.1f, 100.0f);
+}
+
 void MyOpenGLWidget::RenderQuad()
 {
     if (quadVAO == 0)
@@ -499,7 +510,7 @@ void MyOpenGLWidget::RenderQuad()
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
