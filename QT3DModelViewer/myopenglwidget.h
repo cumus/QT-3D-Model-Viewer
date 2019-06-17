@@ -102,6 +102,7 @@ private:
     void RenderQuad();
     void RenderCube();
     void RenderSkybox();
+    int LoadSkyboxes(const QVector<QString> paths);
     void LoadShaders();
     void LoadFramebuffer();
     void DrawBordered();
@@ -124,6 +125,7 @@ public:
     // Rendering Options
     bool use_deferred = false;
     float mode = 8;
+    int current_skybox = 0;
 
     // Stencil Border
     float border_scale = 1.1f;
@@ -162,16 +164,9 @@ private:
     unsigned int quadVBO;
 
     // Skybox
+    QVector<QOpenGLTexture*> skyboxes;
     unsigned int skyboxVAO = 0;
     unsigned int skyboxVBO;
-    unsigned int cubemapTexture;
-    QOpenGLTexture* skybox = nullptr;
-    QImage posx;
-    QImage posy;
-    QImage posz;
-    QImage negx;
-    QImage negy;
-    QImage negz;
 
     // Ligh Cube
     unsigned int cubeVAO = 0;
