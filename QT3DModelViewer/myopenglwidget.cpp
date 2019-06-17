@@ -461,7 +461,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_C: ResetLights(); break;
     case Qt::Key_Space:
     {
-        if (current_light + 1 == NR_LIGHTS) current_light = 1;
+        current_light + 1 == NR_LIGHTS ? current_light = 1 : current_light++;
         lights[current_light].isActive = true;
         lights[current_light].Position = camera->GetPos();
         break;
