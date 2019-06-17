@@ -173,6 +173,8 @@
     <property name="title">
      <string>Skyboxes</string>
     </property>
+    <addaction name="actionRender_Skybox"/>
+    <addaction name="separator"/>
     <addaction name="actionClear_Lake"/>
     <addaction name="actionRed_Mountain_Sunset"/>
    </widget>
@@ -287,6 +289,17 @@
    </property>
    <property name="text">
     <string>Draw Selected GO Borders</string>
+   </property>
+  </action>
+  <action name="actionRender_Skybox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Render Skybox</string>
    </property>
   </action>
  </widget>

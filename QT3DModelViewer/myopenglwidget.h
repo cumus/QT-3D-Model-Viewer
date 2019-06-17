@@ -136,6 +136,8 @@ public:
     float border_alpha = 0.8f;
     bool border_over_borderless = true; // border depth test
 
+    bool renderSkybox = true;
+
 private:
 
     // Shaders

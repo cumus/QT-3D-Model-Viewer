@@ -143,7 +143,10 @@ void MyOpenGLWidget::paintGL()
     {
         scene->Draw(this);
 
-        RenderSkybox();
+        if(renderSkybox)
+        {
+            RenderSkybox();
+        }
 
         DrawBordered();
 

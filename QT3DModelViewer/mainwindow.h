@@ -58,6 +58,7 @@ public slots:
     void shaderDeferred();
     void drawBorders();
 
+    void renderSky();
     void skybox0();
     void skybox1();
 

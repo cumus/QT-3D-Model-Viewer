@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionDeferred_Shading, SIGNAL(triggered()), this, SLOT(shaderDeferred()));
     connect(ui->actionDraw_Selected_GO_Borders, SIGNAL(triggered()), this, SLOT(drawBorders()));
 
+    connect(ui->actionRender_Skybox, SIGNAL(triggered()), this, SLOT(renderSky()));
     connect(ui->actionRed_Mountain_Sunset, SIGNAL(triggered()), this, SLOT(skybox0()));
     connect(ui->actionClear_Lake, SIGNAL(triggered()), this, SLOT(skybox1()));
 
@@ -175,6 +176,11 @@ void MainWindow::shaderDeferred()
 void MainWindow::drawBorders()
 {
     myOpenGLWidget->draw_borders = !myOpenGLWidget->draw_borders;
+}
+
+void MainWindow::renderSky()
+{
+    myOpenGLWidget->renderSkybox = !myOpenGLWidget->renderSkybox;
 }
 
 void MainWindow::skybox0()
