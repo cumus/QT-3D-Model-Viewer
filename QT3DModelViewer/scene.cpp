@@ -24,7 +24,6 @@ Mesh* Scene::InitDemo(MyOpenGLWidget* renderer)
     qDebug() << "HERE" << qApp->applicationDirPath();
 
     goPatrick = AddGameObject("Patrick");
-    goPatrick->transform->SetPos({-2,0,0});
     Mesh* mesh = new Mesh(goPatrick);
     mesh->importModel(qApp->applicationDirPath() + "/Models/Patrick/Patrick.obj", renderer);
     //mesh->draw_border = true;
