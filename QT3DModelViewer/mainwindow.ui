@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>QT 3D Model Viewer</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="minimumSize">
