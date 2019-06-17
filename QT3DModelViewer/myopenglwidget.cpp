@@ -163,7 +163,7 @@ void MyOpenGLWidget::DrawMesh(Mesh* mesh, SHADER_TYPE shader)
     {
         shader = GRAPHIC_BUFFER;
     }
-    else if (mesh->draw_border && state == MODELS)
+    else if (draw_borders && mesh->draw_border && state == MODELS)
     {
         border_meshes.push_back(mesh);
         return;
@@ -450,18 +450,23 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_D: cam_dir[3] = true; break;
     case Qt::Key_E: cam_dir[4] = true; break;
     case Qt::Key_Q: cam_dir[5] = true; break;
+    case Qt::Key_Alt: orbiting = true; break;
+    case Qt::Key_F: camera->Focus(cam_focus); break;
 
     case Qt::Key_T: camera_light_follow = !camera_light_follow; break;
     case Qt::Key_R: lights[0].isActive = !lights[0].isActive; break;
-    case Qt::Key_X: mode = mode+1.f>9.f?0:mode+1; break;
-    case Qt::Key_G: use_deferred = !use_deferred; break;
-    case Qt::Key_Alt: orbiting = true; break;
-    case Qt::Key_F:
+    case Qt::Key_C: ResetLights(); break;
+    case Qt::Key_Space:
     {
-        //cam_focus = scene->go->transform->GetPos();
-        camera->SetPos(cam_focus + QVector3D({1,1,5}));
+        if (current_light + 1 == NR_LIGHTS) current_light = 1;
+        lights[current_light].isActive = true;
+        lights[current_light].Position = camera->GetPos();
         break;
     }
+
+    case Qt::Key_X: mode = mode+1.f>9.f?0:mode+1; break;
+    case Qt::Key_G: use_deferred = !use_deferred; break;
+
     default: break;
     }
 }

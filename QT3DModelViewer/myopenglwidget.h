@@ -84,6 +84,7 @@ public:
     void LoadSubMesh(SubMesh* mesh = nullptr);
 
     void ResetLights();
+    void AddLightAtCamPos();
     void RandomizeLights(float range, QVector3D pos_range, QVector3D offset = {0,0,0}, QVector3D min_color = {0,0,0});
 
 protected:
@@ -121,9 +122,11 @@ public:
     // Light
     QList<Light> lights;
     bool camera_light_follow = true;
+    int current_light = 1;
 
     // Rendering Options
     bool use_deferred = false;
+    bool draw_borders = true;
     float mode = 8;
     int current_skybox = 0;
 
@@ -200,7 +203,7 @@ private:
     int def_albedospecLoc;
 
     // Max Lights
-    const unsigned int NR_LIGHTS = 32;
+    const int NR_LIGHTS = 32;
 };
 
 #endif // MYOPENGLWIDGET_H

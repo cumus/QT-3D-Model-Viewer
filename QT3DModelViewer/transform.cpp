@@ -133,9 +133,8 @@ void Transform::RotateAngleAxis(float angle, QVector3D axis)
     if (!isUpdated)
         GetWorldMatrix();
 
-    QQuaternion rot;
     float yaw, pitch, roll;
-    local_qrot = local_qrot * rot.fromAxisAndAngle(axis, angle);
+    local_qrot = local_qrot * QQuaternion::fromAxisAndAngle(axis, angle);
     local_qrot.getEulerAngles(&pitch, &yaw, &roll);
     local_rot = {pitch, yaw, roll};
     isUpdated = false;
@@ -175,6 +174,26 @@ void Transform::SetScale(QVector3D scale)
 {
     local_scale = scale;
     isUpdated = false;
+}
+
+void Transform::Focus(QVector3D focus)
+{
+    if (!isUpdated)
+        GetWorldMatrix();
+
+    local_qrot = QQuaternion::fromDirection(local_pos - focus, QVector3D::crossProduct(focus - local_pos, world_forward));
+
+    // calc new world_left
+    GetWorldMatrix();
+
+    local_qrot = QQuaternion::fromDirection(local_pos - focus, QVector3D::crossProduct(focus - local_pos, world_left));
+
+    float yaw, pitch, roll;
+    local_qrot.getEulerAngles(&pitch, &yaw, &roll);
+    local_rot = {pitch, yaw, roll};
+    isUpdated = false;
+
+    RotateAxisForward(-roll);
 }
 
 void Transform::Orbit(float x, float y, QVector3D focus)
