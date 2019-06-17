@@ -69,6 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(uiInspector->scaleY, SIGNAL(valueChanged(double)), this, SLOT(changeScaleY()));
     connect(uiInspector->scaleZ, SIGNAL(valueChanged(double)), this, SLOT(changeScaleZ()));
 
+    connect(uiInspector->refractiveIndex, SIGNAL(valueChanged(double)), this, SLOT(changeRefractiveIndex()));
 }
 
 MainWindow::~MainWindow()
@@ -230,7 +231,10 @@ void MainWindow::reloadInspector()
                     for (; comp != selectedGo->components.end(); comp++)
                     {
                         if ((*comp)->type == MESH)
+                        {
                             static_cast<Mesh*>(*comp)->draw_border = true;
+                            uiInspector->refractiveIndex->setValue(static_cast<double>(static_cast<Mesh*>(*comp)->refraction_index));
+                        }
                     }
                 }
 
@@ -288,4 +292,19 @@ void MainWindow::changeScaleY()
 void MainWindow::changeScaleZ()
 {
     selectedGo->transform->SetScale(QVector3D(selectedGo->transform->GetScale().x(),selectedGo->transform->GetScale().y(),static_cast<float>(uiInspector->scaleZ->value())));
+}
+
+void MainWindow::changeRefractiveIndex()
+{
+    if(selectedGo != nullptr)
+    {
+        QVector<Component*>::iterator comp = selectedGo->components.begin();
+        for (; comp != selectedGo->components.end(); comp++)
+        {
+            if ((*comp)->type == MESH)
+            {
+                static_cast<Mesh*>(*comp)->refraction_index = static_cast<float>(uiInspector->refractiveIndex->value());
+            }
+        }
+    }
 }

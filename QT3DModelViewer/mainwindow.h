@@ -73,6 +73,8 @@ public slots:
     void changeScaleX();
     void changeScaleY();
     void changeScaleZ();
+
+    void changeRefractiveIndex();
 };
 
 #endif // MAINWINDOW_H
