@@ -21,6 +21,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
 
     camera = new Transform(nullptr, true, {0,0,5});
     for (int i = 0; i < 6; i++) cam_dir[i] = false;
+    cam_focus = {0,0,0};
 
     border_color = QVector3D(1,0.27f,0);
     border_meshes.clear();
@@ -420,12 +421,23 @@ void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
 
 void MyOpenGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    camera->RotateAxisUp(static_cast<float>((mouse_pos - event->localPos()).x()));
-    camera->RotateAxisLeft(static_cast<float>((mouse_pos - event->localPos()).y()));
-    mouse_pos = event->localPos();
 
-    // correct roll
-    camera->RotateAxisForward(-camera->GetRot().z());
+    if (orbiting)
+    {
+        camera->Orbit(
+                    static_cast<float>((mouse_pos - event->localPos()).x()) * 0.5f,
+                    static_cast<float>((mouse_pos - event->localPos()).y()) * 0.5f,
+                    cam_focus);
+        camera->RotateAxisForward(-camera->GetRot().z()); // correct roll
+    }
+    else
+    {
+        camera->RotateAxisUp(static_cast<float>((mouse_pos - event->localPos()).x()));
+        camera->RotateAxisLeft(static_cast<float>((mouse_pos - event->localPos()).y()));
+        camera->RotateAxisForward(-camera->GetRot().z()); // correct roll
+    }
+
+    mouse_pos = event->localPos();
 }
 
 void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
@@ -439,10 +451,17 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_E: cam_dir[4] = true; break;
     case Qt::Key_Q: cam_dir[5] = true; break;
 
-    case Qt::Key_F: camera_light_follow = !camera_light_follow; break;
+    case Qt::Key_T: camera_light_follow = !camera_light_follow; break;
     case Qt::Key_R: lights[0].isActive = !lights[0].isActive; break;
     case Qt::Key_X: mode = mode+1.f>9.f?0:mode+1; break;
     case Qt::Key_G: use_deferred = !use_deferred; break;
+    case Qt::Key_Alt: orbiting = true; break;
+    case Qt::Key_F:
+    {
+        //cam_focus = scene->go->transform->GetPos();
+        camera->SetPos(cam_focus + QVector3D({1,1,5}));
+        break;
+    }
     default: break;
     }
 }
@@ -457,6 +476,7 @@ void MyOpenGLWidget::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_D: cam_dir[3] = false; break;
     case Qt::Key_E: cam_dir[4] = false; break;
     case Qt::Key_Q: cam_dir[5] = false; break;
+    case Qt::Key_Alt: orbiting = false; break;
     default: break;
     }
 }
