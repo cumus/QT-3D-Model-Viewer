@@ -95,6 +95,16 @@ void MainWindow::loadModel()
 {
     QString file = QFileDialog::getOpenFileName(this,"Select model to load", qApp->applicationDirPath(), "OBJ File (*.obj)");
 
+    if(selectedGo != nullptr)
+    {
+        QVector<Component*>::iterator comp = selectedGo->components.begin();
+        for (; comp != selectedGo->components.end(); comp++)
+        {
+            if ((*comp)->type == MESH)
+                static_cast<Mesh*>(*comp)->draw_border = false;
+        }
+    }
+
     if(file != "")
     {
         scene->newModelPath = file;
@@ -164,9 +174,20 @@ void MainWindow::openReadme()
 
 void MainWindow::reloadInspector()
 {
+    if(selectedGo != nullptr)
+    {
+        QVector<Component*>::iterator comp = selectedGo->components.begin();
+        for (; comp != selectedGo->components.end(); comp++)
+        {
+            if ((*comp)->type == MESH)
+                static_cast<Mesh*>(*comp)->draw_border = false;
+        }
+    }
+
     if(ui->hierarchy->currentItem() == nullptr)
     {
         ui->inspectorDock->setVisible(false);
+
         selectedGo = nullptr;
     }
     else
@@ -202,6 +223,16 @@ void MainWindow::reloadInspector()
                 uiInspector->scaleX->setValue(static_cast<double>(scene->root->childs[i]->transform->GetScale().x()));
                 uiInspector->scaleY->setValue(static_cast<double>(scene->root->childs[i]->transform->GetScale().y()));
                 uiInspector->scaleZ->setValue(static_cast<double>(scene->root->childs[i]->transform->GetScale().z()));
+
+                if(selectedGo != nullptr)
+                {
+                    QVector<Component*>::iterator comp = selectedGo->components.begin();
+                    for (; comp != selectedGo->components.end(); comp++)
+                    {
+                        if ((*comp)->type == MESH)
+                            static_cast<Mesh*>(*comp)->draw_border = true;
+                    }
+                }
 
                 return;
             }
