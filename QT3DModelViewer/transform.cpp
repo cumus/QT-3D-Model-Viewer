@@ -177,6 +177,27 @@ void Transform::SetScale(QVector3D scale)
     isUpdated = false;
 }
 
+void Transform::Orbit(float x, float y, QVector3D focus)
+{
+    if (!isUpdated)
+        GetWorldMatrix();
+
+    float dist = local_pos.distanceToPoint(focus);
+    local_pos = focus;
+
+    QQuaternion rot;
+    float yaw, pitch, roll;
+    local_qrot = local_qrot * rot.fromAxisAndAngle({0,1,0}, x);
+    local_qrot = local_qrot * rot.fromAxisAndAngle({1,0,0}, y);
+    local_qrot.getEulerAngles(&pitch, &yaw, &roll);
+    local_rot = {pitch, yaw, roll};
+
+    GetWorldMatrix();
+
+    local_pos -= world_forward * dist;
+    isUpdated = false;
+}
+
 QVector3D Transform::GetPos() const
 {
     return local_pos;

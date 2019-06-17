@@ -51,10 +51,6 @@ enum RENDER_STATE : int
     FINISHED
 };
 
-struct Camera
-{
-};
-
 struct Light
 {
     bool isActive;
@@ -117,6 +113,7 @@ public:
 
     // Camera
     Transform* camera = nullptr;
+    QVector3D cam_focus;
 
     // Light
     QList<Light> lights;
@@ -143,6 +140,7 @@ private:
     // Camera
     QPointF mouse_pos;
     bool cam_dir[6];
+    bool orbiting = false;
 
     // Time control
     QTimer *timer = nullptr;

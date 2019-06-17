@@ -36,6 +36,7 @@ public:
     void RotateAxisForward(float angle);
     void RemoveRoll();
     void SetScale(QVector3D scale);
+    void Orbit(float x, float y, QVector3D focus);
 
     QVector3D GetPos() const;
     QVector3D GetRot() const;
