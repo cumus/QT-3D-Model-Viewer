@@ -167,9 +167,20 @@
     <addaction name="actionRefraction"/>
     <addaction name="separator"/>
     <addaction name="actionDeferred_Shading"/>
+    <addaction name="actionDraw_Selected_GO_Borders"/>
+   </widget>
+   <widget class="QMenu" name="menuSkyboxes">
+    <property name="title">
+     <string>Skyboxes</string>
+    </property>
+    <addaction name="actionRender_Skybox"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear_Lake"/>
+    <addaction name="actionRed_Mountain_Sunset"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuShaders"/>
+   <addaction name="menuSkyboxes"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadModel">
@@ -257,6 +268,38 @@
    </property>
    <property name="toolTip">
     <string>Deferred Shading</string>
+   </property>
+  </action>
+  <action name="actionRed_Mountain_Sunset">
+   <property name="text">
+    <string>Red Mountain Sunset</string>
+   </property>
+  </action>
+  <action name="actionClear_Lake">
+   <property name="text">
+    <string>Clear Lake</string>
+   </property>
+  </action>
+  <action name="actionDraw_Selected_GO_Borders">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Draw Selected GO Borders</string>
+   </property>
+  </action>
+  <action name="actionRender_Skybox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Render Skybox</string>
    </property>
   </action>
  </widget>

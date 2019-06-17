@@ -51,6 +51,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionReflection, SIGNAL(triggered()), this, SLOT(shaderReflection()));
     connect(ui->actionRefraction, SIGNAL(triggered()), this, SLOT(shaderRefraction()));
     connect(ui->actionDeferred_Shading, SIGNAL(triggered()), this, SLOT(shaderDeferred()));
+    connect(ui->actionDraw_Selected_GO_Borders, SIGNAL(triggered()), this, SLOT(drawBorders()));
+
+    connect(ui->actionRender_Skybox, SIGNAL(triggered()), this, SLOT(renderSky()));
+    connect(ui->actionRed_Mountain_Sunset, SIGNAL(triggered()), this, SLOT(skybox0()));
+    connect(ui->actionClear_Lake, SIGNAL(triggered()), this, SLOT(skybox1()));
 
     connect(ui->hierarchy, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),this, SLOT(reloadInspector()));
 
@@ -166,6 +171,26 @@ void MainWindow::shaderRefraction()
 void MainWindow::shaderDeferred()
 {
     myOpenGLWidget->use_deferred = !myOpenGLWidget->use_deferred;
+}
+
+void MainWindow::drawBorders()
+{
+    myOpenGLWidget->draw_borders = !myOpenGLWidget->draw_borders;
+}
+
+void MainWindow::renderSky()
+{
+    myOpenGLWidget->renderSkybox = !myOpenGLWidget->renderSkybox;
+}
+
+void MainWindow::skybox0()
+{
+    myOpenGLWidget->current_skybox = 0;
+}
+
+void MainWindow::skybox1()
+{
+    myOpenGLWidget->current_skybox = 1;
 }
 
 void MainWindow::openReadme()
