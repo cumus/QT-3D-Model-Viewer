@@ -35,53 +35,6 @@ SOURCES += \
         transform.cpp
 
 HEADERS += \
-        Assimp/include/assimp/Compiler/poppack1.h \
-        Assimp/include/assimp/Compiler/pstdint.h \
-        Assimp/include/assimp/Compiler/pushpack1.h \
-        Assimp/include/assimp/DefaultIOStream.h \
-        Assimp/include/assimp/DefaultIOSystem.h \
-        Assimp/include/assimp/DefaultLogger.hpp \
-        Assimp/include/assimp/Defines.h \
-        Assimp/include/assimp/Exporter.hpp \
-        Assimp/include/assimp/IOStream.hpp \
-        Assimp/include/assimp/IOSystem.hpp \
-        Assimp/include/assimp/Importer.hpp \
-        Assimp/include/assimp/LogStream.hpp \
-        Assimp/include/assimp/Logger.hpp \
-        Assimp/include/assimp/NullLogger.hpp \
-        Assimp/include/assimp/ProgressHandler.hpp \
-        Assimp/include/assimp/SceneCombiner.h \
-        Assimp/include/assimp/ai_assert.h \
-        Assimp/include/assimp/anim.h \
-        Assimp/include/assimp/camera.h \
-        Assimp/include/assimp/cexport.h \
-        Assimp/include/assimp/cfileio.h \
-        Assimp/include/assimp/cimport.h \
-        Assimp/include/assimp/color4.h \
-        Assimp/include/assimp/color4.inl \
-        Assimp/include/assimp/config.h \
-        Assimp/include/assimp/defs.h \
-        Assimp/include/assimp/importerdesc.h \
-        Assimp/include/assimp/light.h \
-        Assimp/include/assimp/material.h \
-        Assimp/include/assimp/material.inl \
-        Assimp/include/assimp/matrix3x3.h \
-        Assimp/include/assimp/matrix3x3.inl \
-        Assimp/include/assimp/matrix4x4.h \
-        Assimp/include/assimp/matrix4x4.inl \
-        Assimp/include/assimp/mesh.h \
-        Assimp/include/assimp/metadata.h \
-        Assimp/include/assimp/postprocess.h \
-        Assimp/include/assimp/quaternion.h \
-        Assimp/include/assimp/quaternion.inl \
-        Assimp/include/assimp/scene.h \
-        Assimp/include/assimp/texture.h \
-        Assimp/include/assimp/types.h \
-        Assimp/include/assimp/vector2.h \
-        Assimp/include/assimp/vector2.inl \
-        Assimp/include/assimp/vector3.h \
-        Assimp/include/assimp/vector3.inl \
-        Assimp/include/assimp/version.h \
         component.h \
         gameobject.h \
         mainwindow.h \
@@ -94,83 +47,36 @@ FORMS += \
         inspector.ui \
         mainwindow.ui
 
+RESOURCES += \
+    icons.qrc
+
+win32 {
+    contains(QT_ARCH, i386) {
+        CONFIG(debug, debug|release) {
+            message("Building: Windows 32-bit Debug")
+            LIBS += -L$$PWD/Assimp/libx86/Debug/ -lassimp-vc142-mtd
+        }
+        CONFIG(release, debug|release){
+            message("Building: Windows 32-bit Release")
+            LIBS += -L$$PWD/Assimp/libx86/MinSizeRel/ -lassimp-vc142-mt
+        }
+    } else {
+        CONFIG(debug, debug|release) {
+            message("Building: Windows 64-bit Debug")
+            LIBS += -L$$PWD/Assimp/libx64/Debug/ -lassimp-vc142-mtd
+        }
+        CONFIG(release, debug|release){
+            message("Building: Windows 64-bit Release")
+            LIBS += -L$$PWD/Assimp/libx64/MinSizeRel/ -lassimp-vc142-mt
+        }
+    }
+}
+else:message("Viewer Error: Target platform unsupported")
+
+INCLUDEPATH += $$PWD/Assimp/include
+DEPENDPATH += $$PWD/Assimp/include
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-RESOURCES += \
-    icons.qrc
-
-DISTFILES += \
-    Assimp/lib/assimp.dll \
-    Assimp/lib/assimp.lib \
-    Assimp/lib/assimpd.dll \
-    Assimp/lib/assimpd.lib \
-    Models/Patrick/Color.png \
-    Models/Patrick/Flowers.png \
-    Models/Patrick/Patrick.mtl \
-    Models/Patrick/Skin_Patrick.png \
-    Resources/icons/Badge-multiply.png \
-    Resources/icons/Disquette.png \
-    Resources/icons/Doc.png \
-    Resources/icons/Document-new.png \
-    Resources/icons/Folder.png \
-    Resources/icons/Info.png \
-    Shaders/default.frag \
-    Shaders/default.vert \
-    Shaders/deferred_light.frag \
-    Shaders/deferred_light.vert \
-    Shaders/deferred_shading.frag \
-    Shaders/deferred_shading.vert \
-    Shaders/framebuffertoscreen.frag \
-    Shaders/framebuffertoscreen.fsh \
-    Shaders/framebuffertoscreen.vert \
-    Shaders/framebuffertoscreen.vsh \
-    Shaders/graphic_buffer.frag \
-    Shaders/graphic_buffer.vert \
-    Shaders/singlecolor.frag \
-    Shaders/singlecolor.vert \
-    Shaders/skybox.frag \
-    Shaders/skybox.vert \
-    Skyboxes/mp_blood/blood_bk.tga \
-    Skyboxes/mp_blood/blood_dn.tga \
-    Skyboxes/mp_blood/blood_ft.tga \
-    Skyboxes/mp_blood/blood_lf.tga \
-    Skyboxes/mp_blood/blood_rt.tga \
-    Skyboxes/mp_blood/blood_up.tga \
-    Skyboxes/mp_boulder/boulder-bay_bk.tga \
-    Skyboxes/mp_boulder/boulder-bay_dn.tga \
-    Skyboxes/mp_boulder/boulder-bay_ft.tga \
-    Skyboxes/mp_boulder/boulder-bay_lf.tga \
-    Skyboxes/mp_boulder/boulder-bay_rt.tga \
-    Skyboxes/mp_boulder/boulder-bay_up.tga \
-    Skyboxes/sor_lake1/lake1_bk.JPG \
-    Skyboxes/sor_lake1/lake1_dn.JPG \
-    Skyboxes/sor_lake1/lake1_ft.JPG \
-    Skyboxes/sor_lake1/lake1_lf.JPG \
-    Skyboxes/sor_lake1/lake1_rt.JPG \
-    Skyboxes/sor_lake1/lake1_up.JPG \
-    Skyboxes/sor_land/land_bk.JPG \
-    Skyboxes/sor_land/land_dn.JPG \
-    Skyboxes/sor_land/land_ft.JPG \
-    Skyboxes/sor_land/land_lf.JPG \
-    Skyboxes/sor_land/land_rt.JPG \
-    Skyboxes/sor_land/land_up.JPG \
-    default.frag \
-    default.vert \
-    deferred_light.frag \
-    deferred_light.vert \
-    deferred_shading.frag \
-    deferred_shading.vert \
-    graphic_buffer.frag \
-    graphic_buffer.vert \
-    singlecolor.frag \
-    skybox.vert
-
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimp
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Assimp/lib/ -lassimpd
-else:unix: LIBS += -L$$PWD/Assimp/lib/ -lassimp
-
-INCLUDEPATH += $$PWD/Assimp/include
-DEPENDPATH += $$PWD/Assimp/include
