@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/shaders">
+        <file>default.frag</file>
+        <file>default.vert</file>
+        <file>deferred_light.frag</file>
+        <file>deferred_light.vert</file>
+        <file>deferred_shading.frag</file>
+        <file>deferred_shading.vert</file>
+        <file>framebuffertoscreen.frag</file>
+        <file>framebuffertoscreen.fsh</file>
+        <file>framebuffertoscreen.vert</file>
+        <file>framebuffertoscreen.vsh</file>
+        <file>graphic_buffer.frag</file>
+        <file>graphic_buffer.vert</file>
+        <file>singlecolor.frag</file>
+        <file>singlecolor.vert</file>
+        <file>skybox.frag</file>
+        <file>skybox.vert</file>
+    </qresource>
+</RCC>

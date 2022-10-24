@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/skyboxes">
+        <file>sor_lake1/lake1_bk.JPG</file>
+        <file>sor_lake1/lake1_dn.JPG</file>
+        <file>sor_lake1/lake1_ft.JPG</file>
+        <file>sor_lake1/lake1_lf.JPG</file>
+        <file>sor_lake1/lake1_rt.JPG</file>
+        <file>sor_lake1/lake1_up.JPG</file>
+        <file>sor_land/land_bk.JPG</file>
+        <file>sor_land/land_dn.JPG</file>
+        <file>sor_land/land_ft.JPG</file>
+        <file>sor_land/land_lf.JPG</file>
+        <file>sor_land/land_rt.JPG</file>
+        <file>sor_land/land_up.JPG</file>
+    </qresource>
+</RCC>
