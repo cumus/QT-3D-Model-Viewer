@@ -5,7 +5,8 @@
 
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-#include <QApplication>ç
+#include <QApplication>
+#include <QDebug>
 
 Scene::Scene()
 {
