@@ -48,7 +48,9 @@ FORMS += \
         mainwindow.ui
 
 RESOURCES += \
-    icons.qrc
+        Resources/Skyboxes/skyboxes.qrc \
+        Resources/Shaders/shaders.qrc \
+        Resources/Icons/icons.qrc
 
 win32 {
     contains(QT_ARCH, i386) {

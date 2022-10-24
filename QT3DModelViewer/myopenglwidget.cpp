@@ -657,20 +657,20 @@ void MyOpenGLWidget::RenderSkybox()
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
 
         QVector<QString> paths;
-        paths.push_back("/Skyboxes/sor_land/land_rt.JPG");
-        paths.push_back("/Skyboxes/sor_land/land_up.JPG");
-        paths.push_back("/Skyboxes/sor_land/land_bk.JPG");
-        paths.push_back("/Skyboxes/sor_land/land_lf.JPG");
-        paths.push_back("/Skyboxes/sor_land/land_dn.JPG");
-        paths.push_back("/Skyboxes/sor_land/land_ft.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_rt.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_up.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_bk.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_lf.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_dn.JPG");
+        paths.push_back(":/skyboxes/sor_land/land_ft.JPG");
         current_skybox = LoadSkyboxes(paths);
         paths.clear();
-        paths.push_back("/Skyboxes/sor_lake1/lake1_rt.JPG");
-        paths.push_back("/Skyboxes/sor_lake1/lake1_up.JPG");
-        paths.push_back("/Skyboxes/sor_lake1/lake1_bk.JPG");
-        paths.push_back("/Skyboxes/sor_lake1/lake1_lf.JPG");
-        paths.push_back("/Skyboxes/sor_lake1/lake1_dn.JPG");
-        paths.push_back("/Skyboxes/sor_lake1/lake1_ft.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_rt.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_up.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_bk.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_lf.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_dn.JPG");
+        paths.push_back(":/skyboxes/sor_lake1/lake1_ft.JPG");
         current_skybox = LoadSkyboxes(paths);
         paths.clear();
 
@@ -698,12 +698,19 @@ void MyOpenGLWidget::RenderSkybox()
 
 int MyOpenGLWidget::LoadSkyboxes(const QVector<QString> paths)
 {
-    QImage posx = QImage(qApp->applicationDirPath() + paths[0]).convertToFormat(QImage::Format_RGBA8888);
-    QImage posy = QImage(qApp->applicationDirPath() + paths[1]).convertToFormat(QImage::Format_RGBA8888);
-    QImage posz = QImage(qApp->applicationDirPath() + paths[2]).convertToFormat(QImage::Format_RGBA8888);
-    QImage negx = QImage(qApp->applicationDirPath() + paths[3]).convertToFormat(QImage::Format_RGBA8888);
-    QImage negy = QImage(qApp->applicationDirPath() + paths[4]).convertToFormat(QImage::Format_RGBA8888);
-    QImage negz = QImage(qApp->applicationDirPath() + paths[5]).convertToFormat(QImage::Format_RGBA8888);
+    QImage posx = QImage(paths[0]).convertToFormat(QImage::Format_RGBA8888);
+    QImage posy = QImage(paths[1]).convertToFormat(QImage::Format_RGBA8888);
+    QImage posz = QImage(paths[2]).convertToFormat(QImage::Format_RGBA8888);
+    QImage negx = QImage(paths[3]).convertToFormat(QImage::Format_RGBA8888);
+    QImage negy = QImage(paths[4]).convertToFormat(QImage::Format_RGBA8888);
+    QImage negz = QImage(paths[5]).convertToFormat(QImage::Format_RGBA8888);
+
+    if (posx.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid posx Path: " << qApp->applicationDirPath() + paths[0] << endl;
+    if (posy.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid posy Path: " << qApp->applicationDirPath() + paths[1] << endl;
+    if (posz.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid posz Path: " << qApp->applicationDirPath() + paths[2] << endl;
+    if (negx.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid negx Path: " << qApp->applicationDirPath() + paths[3] << endl;
+    if (negy.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid negy Path: " << qApp->applicationDirPath() + paths[4] << endl;
+    if (negz.isNull()) qDebug() << "ERROR::LoadSkyboxes::Invalid negz Path: " << qApp->applicationDirPath() + paths[5] << endl;
 
     QOpenGLTexture* skybox = new QOpenGLTexture(QOpenGLTexture::TargetCubeMap);
     skybox->create();
@@ -731,8 +738,8 @@ void MyOpenGLWidget::LoadShaders()
 {
     // Default shader
     QOpenGLShaderProgram* d_shader = new QOpenGLShaderProgram;
-    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/default.vert")) qDebug() << "Error loading default.vert shader";
-    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/default.frag")) qDebug() << "Error loading default.frag shader";
+    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/default.vert")) qDebug() << "Error loading default.vert shader";
+    if (!d_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/default.frag")) qDebug() << "Error loading default.frag shader";
     d_shader->bindAttributeLocation("vertex", 0);
     d_shader->bindAttributeLocation("normal", 1);
     d_shader->bindAttributeLocation("texCoord", 2);
@@ -752,8 +759,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Single Color shader
     QOpenGLShaderProgram* sc_shader = new QOpenGLShaderProgram();
-    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/singlecolor.vert")) qDebug() << "Error loading singlecolor.vert shader";
-    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/singlecolor.frag")) qDebug() << "Error loading singlecolor.frag shader";
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/singlecolor.vert")) qDebug() << "Error loading singlecolor.vert shader";
+    if (!sc_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/singlecolor.frag")) qDebug() << "Error loading singlecolor.frag shader";
     sc_shader->bindAttributeLocation("aPos", 0);
     sc_shader->bindAttributeLocation("texCoord", 1);
     if (!sc_shader->link()) qDebug() << "Error Linking Single Color Shader";
@@ -767,8 +774,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Framebuffer to Screen shader
     QOpenGLShaderProgram* fs_shader = new QOpenGLShaderProgram();
-    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/framebuffertoscreen.vert")) qDebug() << "Error loading singlecolor.vert shader";
-    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/framebuffertoscreen.frag")) qDebug() << "Error loading singlecolor.frag shader";
+    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/framebuffertoscreen.vert")) qDebug() << "Error loading singlecolor.vert shader";
+    if (!fs_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/framebuffertoscreen.frag")) qDebug() << "Error loading singlecolor.frag shader";
     fs_shader->bindAttributeLocation("vertex", 0);
     fs_shader->bindAttributeLocation("texCoord", 1);
     if (!fs_shader->link()) qDebug() << "Error Linking Framebuffer to Screen Shader";
@@ -780,8 +787,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Graphic Buffer shader
     QOpenGLShaderProgram* gb_shader = new QOpenGLShaderProgram();
-    if (!gb_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/graphic_buffer.vert")) qDebug() << "Error loading graphic_buffer.vert shader";
-    if (!gb_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/graphic_buffer.frag")) qDebug() << "Error loading graphic_buffer.frag shader";
+    if (!gb_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/graphic_buffer.vert")) qDebug() << "Error loading graphic_buffer.vert shader";
+    if (!gb_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/graphic_buffer.frag")) qDebug() << "Error loading graphic_buffer.frag shader";
     gb_shader->bindAttributeLocation("gPosition", 0);
     gb_shader->bindAttributeLocation("gNormal", 1);
     gb_shader->bindAttributeLocation("gAlbedoSpec", 2);
@@ -792,8 +799,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Deferred Shading shader
     QOpenGLShaderProgram* def_shader = new QOpenGLShaderProgram();
-    if (!def_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/deferred_shading.vert")) qDebug() << "Error loading deferred_shading.vert shader";
-    if (!def_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/deferred_shading.frag")) qDebug() << "Error loading deferred_shading.frag shader";
+    if (!def_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/deferred_shading.vert")) qDebug() << "Error loading deferred_shading.vert shader";
+    if (!def_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/deferred_shading.frag")) qDebug() << "Error loading deferred_shading.frag shader";
     if (!def_shader->link()) qDebug() << "Error Linking Deferred Shading Shader";
     if (!def_shader->bind()) qDebug() << "Error Binding Deferred Shading Shader";
     def_posLoc = def_shader->uniformLocation("gPosition");
@@ -807,8 +814,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Deferred Light shader
     QOpenGLShaderProgram* dl_shader = new QOpenGLShaderProgram();
-    if (!dl_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/deferred_light.vert")) qDebug() << "Error loading deferred_light.vert shader";
-    if (!dl_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/deferred_light.frag")) qDebug() << "Error loading deferred_light.frag shader";
+    if (!dl_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/deferred_light.vert")) qDebug() << "Error loading deferred_light.vert shader";
+    if (!dl_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/deferred_light.frag")) qDebug() << "Error loading deferred_light.frag shader";
     if (!dl_shader->link()) qDebug() << "Error Linking Lightning Pass Shader";
     if (!dl_shader->bind()) qDebug() << "Error Binding Lightning Pass Shader";
     programs.push_back(dl_shader);
@@ -816,8 +823,8 @@ void MyOpenGLWidget::LoadShaders()
 
     // Skybox shader
     QOpenGLShaderProgram* sb_shader = new QOpenGLShaderProgram();
-    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, qApp->applicationDirPath() + "/Shaders/skybox.vert")) qDebug() << "Error loading skybox.vert shader";
-    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, qApp->applicationDirPath() + "/Shaders/skybox.frag")) qDebug() << "Error loading skybox.frag shader";
+    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/skybox.vert")) qDebug() << "Error loading skybox.vert shader";
+    if (!sb_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/skybox.frag")) qDebug() << "Error loading skybox.frag shader";
     if (!sb_shader->link()) qDebug() << "Error Linking Skybox Shader";
     if (!sb_shader->bind()) qDebug() << "Error Binding Skybox Shader";
     programs.push_back(sb_shader);

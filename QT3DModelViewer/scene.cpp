@@ -1,12 +1,11 @@
 #include "scene.h"
 #include "gameobject.h"
 #include "component.h"
-#include "transform.h"
 #include "mesh.h"
 
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-#include <QApplication>
+#include <QApplication>ç
 
 Scene::Scene()
 {
@@ -69,5 +68,5 @@ GameObject *Scene::AddGameObject(QString name, GameObject *parent)
 
 void Scene::RemoveEntity(int id)
 {
-
+    // TODO: Reference-count resources to free unused only
 }

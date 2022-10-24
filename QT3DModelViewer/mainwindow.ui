@@ -185,8 +185,8 @@
   </widget>
   <action name="actionLoadModel">
    <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/icons/Resources/icons/Folder.png</normaloff>:/icons/Resources/icons/Folder.png</iconset>
+    <iconset resource="Resources/Icons/icons.qrc">
+     <normaloff>:/icons/Folder.png</normaloff>:/icons/Folder.png</iconset>
    </property>
    <property name="text">
     <string>Load model</string>
@@ -202,8 +202,8 @@
   </action>
   <action name="actionReadme">
    <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/icons/Resources/icons/Info.png</normaloff>:/icons/Resources/icons/Info.png</iconset>
+    <iconset resource="Resources/Icons/icons.qrc">
+     <normaloff>:/icons/Info.png</normaloff>:/icons/Info.png</iconset>
    </property>
    <property name="text">
     <string>Readme</string>
@@ -305,7 +305,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="icons.qrc"/>
+  <include location="Resources/Icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

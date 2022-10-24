@@ -41,3 +41,10 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
+
+# Qt temporal files
+*.idx
+QT3DModelViewer/.qtc_clangd/
+
+#Build folders
+/Builds/
