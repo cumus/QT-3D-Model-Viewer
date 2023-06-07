@@ -61,19 +61,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Inspector connections
     connect(uiInspector->activeBox, SIGNAL(clicked()), this, SLOT(changeActiveGo()));
-
     connect(uiInspector->positionX, SIGNAL(valueChanged(double)), this, SLOT(changePositionX()));
     connect(uiInspector->positionY, SIGNAL(valueChanged(double)), this, SLOT(changePositionY()));
     connect(uiInspector->positionZ, SIGNAL(valueChanged(double)), this, SLOT(changePositionZ()));
-
     connect(uiInspector->rotationX, SIGNAL(valueChanged(double)), this, SLOT(changeRotationX()));
     connect(uiInspector->rotationY, SIGNAL(valueChanged(double)), this, SLOT(changeRotationY()));
     connect(uiInspector->rotationZ, SIGNAL(valueChanged(double)), this, SLOT(changeRotationZ()));
-
     connect(uiInspector->scaleX, SIGNAL(valueChanged(double)), this, SLOT(changeScaleX()));
     connect(uiInspector->scaleY, SIGNAL(valueChanged(double)), this, SLOT(changeScaleY()));
     connect(uiInspector->scaleZ, SIGNAL(valueChanged(double)), this, SLOT(changeScaleZ()));
-
     connect(uiInspector->refractiveIndex, SIGNAL(valueChanged(double)), this, SLOT(changeRefractiveIndex()));
 }
 
@@ -118,85 +114,22 @@ void MainWindow::loadModel()
     }
 }
 
-void MainWindow::shaderDiffuse()
-{
-    myOpenGLWidget->mode = 0;
-}
-
-void MainWindow::shaderVertexPosition()
-{
-    myOpenGLWidget->mode = 1;
-}
-
-void MainWindow::shaderVertexNormal()
-{
-    myOpenGLWidget->mode = 2;
-}
-
-void MainWindow::shaderVertexTextureCoords()
-{
-    myOpenGLWidget->mode = 3;
-}
-
-void MainWindow::shaderBitangents()
-{
-    myOpenGLWidget->mode = 4;
-}
-
-void MainWindow::shaderTangents()
-{
-    myOpenGLWidget->mode = 5;
-}
-
-void MainWindow::shaderDepth()
-{
-    myOpenGLWidget->mode = 6;
-}
-
-void MainWindow::shaderLinearDepth()
-{
-    myOpenGLWidget->mode = 7;
-}
-
-void MainWindow::shaderReflection()
-{
-    myOpenGLWidget->mode = 8;
-}
-
-void MainWindow::shaderRefraction()
-{
-    myOpenGLWidget->mode = 9;
-}
-
-void MainWindow::shaderDeferred()
-{
-    myOpenGLWidget->use_deferred = !myOpenGLWidget->use_deferred;
-}
-
-void MainWindow::drawBorders()
-{
-    myOpenGLWidget->draw_borders = !myOpenGLWidget->draw_borders;
-}
-
-void MainWindow::renderSky()
-{
-    myOpenGLWidget->renderSkybox = !myOpenGLWidget->renderSkybox;
-}
-
-void MainWindow::skybox0()
-{
-    myOpenGLWidget->current_skybox = 0;
-}
-
-void MainWindow::skybox1()
-{
-    myOpenGLWidget->current_skybox = 1;
-}
-
-void MainWindow::openReadme()
-{
-    QDesktopServices::openUrl(QUrl("https://github.com/cumus/QT-3D-Model-Viewer"));
-}
+void MainWindow::shaderDiffuse()                { myOpenGLWidget->mode = 0; }
+void MainWindow::shaderVertexPosition()         { myOpenGLWidget->mode = 1; }
+void MainWindow::shaderVertexNormal()           { myOpenGLWidget->mode = 2; }
+void MainWindow::shaderVertexTextureCoords()    { myOpenGLWidget->mode = 3; }
+void MainWindow::shaderBitangents()             { myOpenGLWidget->mode = 4; }
+void MainWindow::shaderTangents()               { myOpenGLWidget->mode = 5; }
+void MainWindow::shaderDepth()                  { myOpenGLWidget->mode = 6; }
+void MainWindow::shaderLinearDepth()            { myOpenGLWidget->mode = 7; }
+void MainWindow::shaderReflection()             { myOpenGLWidget->mode = 8; }
+void MainWindow::shaderRefraction()             { myOpenGLWidget->mode = 9; }
+void MainWindow::shaderDeferred()               { myOpenGLWidget->use_deferred = !myOpenGLWidget->use_deferred; }
+void MainWindow::drawBorders()                  { myOpenGLWidget->draw_borders = !myOpenGLWidget->draw_borders; }
+void MainWindow::renderSky()                    { myOpenGLWidget->renderSkybox = !myOpenGLWidget->renderSkybox; }
+void MainWindow::skybox0()                      { myOpenGLWidget->current_skybox = 0; }
+void MainWindow::skybox1()                      { myOpenGLWidget->current_skybox = 1; }
+void MainWindow::openReadme()                   { QDesktopServices::openUrl(QUrl("https://github.com/cumus/QT-3D-Model-Viewer")); }
 
 void MainWindow::reloadInspector()
 {
@@ -277,7 +210,13 @@ void MainWindow::changeActiveGo()
 
 void MainWindow::changePositionX()
 {
-    selectedGo->transform->SetPos(QVector3D(static_cast<float>(uiInspector->positionX->value()),selectedGo->transform->GetPos().y(),selectedGo->transform->GetPos().z()));
+    Transform* t = nullptr;
+    if (selectedGo == nullptr || (t = selectedGo->transform) == nullptr)
+        return;
+
+    t->SetPos(QVector3D(static_cast<float>(uiInspector->positionX->value()),
+                        t->GetPos().y(),
+                        t->GetPos().z()));
 }
 
 void MainWindow::changePositionY()

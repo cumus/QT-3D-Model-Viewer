@@ -4,7 +4,6 @@
 #include <QDataStream>
 
 class GameObject;
-class MyOpenGLWidget;
 
 enum ComponentTYPE
 {
@@ -23,7 +22,7 @@ public:
     virtual void Save(QDataStream& stream) = 0;
     virtual void Load(QDataStream& stream) = 0;
     virtual void CleanUp() = 0;
-    virtual void Draw(MyOpenGLWidget *renderer){}
+    virtual void Draw(class MyOpenGLWidget* renderer){}
 
 public:
 
